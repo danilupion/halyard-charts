@@ -1,0 +1,4 @@
+charts/**/templates/**/*.yaml
+charts/**/templates/**/*.yml
+charts/**/templates/**/*.tpl
+charts/**/templates/**/*.gotmpl

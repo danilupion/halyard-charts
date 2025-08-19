@@ -1,0 +1,10 @@
+This chart creates one or more ClusterIssuers.
+
+Use them from your ingresses with:
+  annotations:
+    cert-manager.io/cluster-issuer: "<instance name>"
+
+Example:
+  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+Tip: install this chart in the cert-manager namespace.

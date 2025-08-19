@@ -4,17 +4,21 @@ repos:
       # Enforces formatting during commit
       - id: prettier
         name: prettier (check)
-        entry: npx prettier --ignore-unknown --check
+        entry: prettier --ignore-unknown --check
         language: node
         types: [file]
+        additional_dependencies:
+          - prettier@3.6.2
 
       # Optional: run manually to fix formatting
       - id: prettier-fix
         name: prettier (fix)
-        entry: npx prettier --ignore-unknown --write
+        entry: prettier --ignore-unknown --write
         language: node
         types: [file]
         stages: [manual]
+        additional_dependencies:
+          - prettier@3.6.2
 
       - id: ct-lint
         name: chart-testing lint

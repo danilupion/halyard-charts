@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "commonLabels": { "type": "object", "additionalProperties": true },
+    "commonAnnotations": { "type": "object", "additionalProperties": true },
+    "createSecret": { "type": "boolean", "default": false },
+    "secret": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "default": "cloudflare-api-token-secret" },
+        "stringData": {
+          "type": "object",
+          "properties": {
+            "api-token": { "type": "string" }
+          },
+          "required": []
+        }
+      }
+    },
+    "instances": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "acme": {
+            "type": "object",
+            "properties": {
+              "email": { "type": "string" },
+              "server": { "type": "string" },
+              "privateKeySecretName": { "type": "string" }
+            },
+            "required": ["email"]
+          },
+          "cloudflare": {
+            "type": "object",
+            "properties": {
+              "apiTokenSecretRef": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "key": { "type": "string" }
+                },
+                "required": ["name", "key"]
+              }
+            },
+            "required": ["apiTokenSecretRef"]
+          },
+          "solvers": { "type": "array" }
+        },
+        "required": ["name", "acme", "cloudflare"]
+      }
+    }
+  },
+  "required": ["instances"]
+}

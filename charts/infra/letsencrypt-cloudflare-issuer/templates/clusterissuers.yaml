@@ -1,0 +1,35 @@
+{{- range $i, $issuer := .Values.instances }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ required "instances[].name is required" $issuer.name }}
+  labels:
+    {{- include "lci.labels" $ | nindent 4 }}
+  {{- with $.Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $.Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  acme:
+    email: {{ required (printf "instances[%d].acme.email is required" $i) $issuer.acme.email }}
+    server: {{ default "https://acme-v02.api.letsencrypt.org/directory" $issuer.acme.server }}
+    privateKeySecretRef:
+      name: {{ default (printf "%s-key" $issuer.name) $issuer.acme.privateKeySecretName }}
+    solvers:
+      - dns01:
+          cloudflare:
+            {{- /* Token auth (recommended) */ -}}
+            apiTokenSecretRef:
+              name: {{ required (printf "instances[%d].cloudflare.apiTokenSecretRef.name is required" $i) $issuer.cloudflare.apiTokenSecretRef.name }}
+              key: {{ default "api-token" $issuer.cloudflare.apiTokenSecretRef.key }}
+        {{- with (first $issuer.solvers) }}
+      {{- if .selector }}
+      selector:
+        {{- toYaml .selector | nindent 8 }}
+      {{- end }}
+        {{- end }}
+---
+{{- end }}
