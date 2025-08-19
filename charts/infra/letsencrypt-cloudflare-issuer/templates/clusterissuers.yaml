@@ -1,6 +1,14 @@
 {{- range $i, $issuer := .Values.instances }}
-{{- $secretName := dig "secret" "name" $issuer.cloudflare "" }}
-{{- $secretKey := dig "secret" "key" $issuer.cloudflare "" }}
+{{- $cf   := default (dict) $issuer.cloudflare -}}
+{{- $sec  := default (dict) (get $cf "secret") -}}
+{{- $secretName := default "" (get $sec "name") -}}
+{{- $secretKey  := default "" (get $sec "key")  -}}
+{{- $apiRef := default (dict) (get $cf "apiTokenSecretRef") -}}
+{{- $apiRefName := default "" (get $apiRef "name") -}}
+{{- $apiRefKey  := default "" (get $apiRef "key")  -}}
+{{- $resolvedName := default $secretName $apiRefName -}}         {{/* prefer apiTokenSecretRef.name, else secret.name */}}
+{{- $resolvedKey  := default "api-token" (coalesce $apiRefKey $secretKey) -}}  {{/* prefer apiTokenSecretRef.key, else secret.key, else "api-token" */}}
+
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -23,15 +31,16 @@ spec:
     solvers:
       - dns01:
           cloudflare:
-            {{- /* Token auth (recommended) */ -}}
             apiTokenSecretRef:
-              name: {{ required (printf "instances[%d] requires cloudflare.apiTokenSecretRef.name or cloudflare.secret.name" $i) (coalesce $issuer.cloudflare.apiTokenSecretRef.name $secretName) }}
-              key: {{ default "api-token" (coalesce $issuer.cloudflare.apiTokenSecretRef.key $secretKey) }}
-        {{- with (first $issuer.solvers) }}
-      {{- if .selector }}
+              name: {{ required (printf "instances[%d] requires cloudflare.apiTokenSecretRef.name or cloudflare.secret.name" $i) $resolvedName }}
+              key:  {{ $resolvedKey }}
+{{- $solvers := default (list) $issuer.solvers -}}
+{{- if gt (len $solvers) 0 -}}
+  {{- $s := index $solvers 0 -}}
+  {{- if $s.selector }}
       selector:
-        {{- toYaml .selector | nindent 8 }}
-      {{- end }}
-        {{- end }}
+        {{- toYaml $s.selector | nindent 8 }}
+  {{- end }}
+{{- end }}
 ---
 {{- end }}
