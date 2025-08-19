@@ -6,7 +6,7 @@ kind: ClusterIssuer
 metadata:
   name: {{ required "instances[].name is required" $issuer.name }}
   labels:
-    {{- include "lci.labels" $ | nindent 4 }}
+    {{- include "common.labels" $ | nindent 4 }}
   {{- with $.Values.commonLabels }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
