@@ -3,7 +3,6 @@ name: letsencrypt-cloudflare-issuer
 description: Cert-Manager (Cluster)Issuer(s) backed by Let's Encrypt + Cloudflare DNS-01
 type: application
 version: 1.0.0
-appVersion: v1
 keywords:
   - cert-manager
   - acme
