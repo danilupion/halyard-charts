@@ -16,7 +16,18 @@ Halyard Charts is a collection of reusable Helm charts for infrastructure and ap
 This repository uses [pre-commit](https://pre-commit.com) to enforce consistent formatting and linting.
 Install the Git hooks and run all checks with:
 
+## Pre-commit hooks
+
+Install git hooks with:
+
 ```bash
 pre-commit install
-pre-commit run --all-files
+```
+
+## Manually running prettier wiht "fix"
+
+Install git hooks with:
+
+```bash
+pre-commit run --hook-stage manual --all-file
 ```
