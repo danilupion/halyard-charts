@@ -2,14 +2,6 @@
 commonLabels: {}
 commonAnnotations: {}
 
-# Create the Cloudflare API token Secret here (OFF by default).
-# Prefer referencing an existing secret; enable only if you accept storing tokens in values.
-createSecret: false
-secret:
-  name: cloudflare-api-token-secret
-  stringData:
-    api-token: "" # set only if createSecret=true
-
 # One or more ClusterIssuers
 instances:
   - name: letsencrypt-prod
@@ -19,10 +11,17 @@ instances:
       server: https://acme-v02.api.letsencrypt.org/directory
       privateKeySecretName: letsencrypt-prod-key
     cloudflare:
-      # token-based auth (recommended)
-      apiTokenSecretRef:
+      # Secret with the Cloudflare API token for this issuer
+      secret:
+        create: false
         name: cloudflare-api-token-secret
         key: api-token
+        stringData:
+          api-token: "" # set only if create=true
+      # Optionally reference a different existing secret
+      # apiTokenSecretRef:
+      #   name: other-secret
+      #   key: api-token
       # If you ever use API key auth, you may add `email:` and `apiKeySecretRef:` here.
 
     # Optional: restrict solver to specific zones
