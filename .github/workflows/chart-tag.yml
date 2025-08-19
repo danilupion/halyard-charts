@@ -1,17 +1,21 @@
 name: Tag chart versions
 on:
-  push:
+  workflow_run:
+    workflows: ["Helm chart CI"]
     branches: [ main ]
-    paths:
-      - 'charts/**/Chart.yaml'
+    types:
+      - completed
 jobs:
   tag:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Install yq
         run: |
@@ -19,16 +23,26 @@ jobs:
             https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
+      - name: Configure git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
       - name: Detect changed Chart.yaml files
         id: changed
         run: |
-          git diff --name-only HEAD^ HEAD | grep 'charts/.*/.*/Chart.yaml' || true
+          files=$(git diff --name-only HEAD^ HEAD | grep 'charts/.*/.*/Chart.yaml' || true)
+          if [ -n "$files" ]; then
+            echo "files=$files" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create tags per changed chart
-        if: steps.changed.outputs != ''
+        if: steps.changed.outputs.files != ''
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
         run: |
           set -euo pipefail
-          for f in $(git diff --name-only HEAD^ HEAD | grep 'charts/.*/.*/Chart.yaml'); do
+          for f in $CHANGED_FILES; do
             chart_dir=$(dirname "$f")
             name=$(yq -r '.name' "$f")
             ver=$(yq -r '.version' "$f")
