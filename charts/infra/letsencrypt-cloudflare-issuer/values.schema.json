@@ -4,20 +4,6 @@
   "properties": {
     "commonLabels": { "type": "object", "additionalProperties": true },
     "commonAnnotations": { "type": "object", "additionalProperties": true },
-    "createSecret": { "type": "boolean", "default": false },
-    "secret": {
-      "type": "object",
-      "properties": {
-        "name": { "type": "string", "default": "cloudflare-api-token-secret" },
-        "stringData": {
-          "type": "object",
-          "properties": {
-            "api-token": { "type": "string" }
-          },
-          "required": []
-        }
-      }
-    },
     "instances": {
       "type": "array",
       "minItems": 1,
@@ -44,9 +30,28 @@
                   "key": { "type": "string" }
                 },
                 "required": ["name", "key"]
+              },
+              "secret": {
+                "type": "object",
+                "properties": {
+                  "create": { "type": "boolean", "default": false },
+                  "name": { "type": "string" },
+                  "key": { "type": "string", "default": "api-token" },
+                  "stringData": {
+                    "type": "object",
+                    "properties": {
+                      "api-token": { "type": "string" }
+                    },
+                    "required": []
+                  }
+                },
+                "required": ["name"]
               }
             },
-            "required": ["apiTokenSecretRef"]
+            "anyOf": [
+              { "required": ["apiTokenSecretRef"] },
+              { "required": ["secret"] }
+            ]
           },
           "solvers": { "type": "array" }
         },
