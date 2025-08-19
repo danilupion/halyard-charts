@@ -11,6 +11,23 @@ Halyard Charts is a collection of reusable Helm charts for infrastructure and ap
 - **Typed values**: charts include `values.schema.json` for early validation.
 - **Per-chart versioning**: tag releases per chart (e.g., `letsencrypt-cloudflare-issuer-v1.2.3`).
 
+## Common Library Chart
+
+Shared helpers are provided by the [`common`](charts/common) library chart. To use them, declare the dependency in your chart's `Chart.yaml`:
+
+```yaml
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common
+```
+
+Then reference the helpers with the chart name, for example:
+
+```yaml
+{{ include "common.labels" . }}
+```
+
 ## Contributing
 
 This repository uses [pre-commit](https://pre-commit.com) to enforce consistent formatting and linting.
