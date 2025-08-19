@@ -1,0 +1,41 @@
+name: Tag chart versions
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'charts/**/Chart.yaml'
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Install yq
+        run: |
+          sudo wget -O /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Detect changed Chart.yaml files
+        id: changed
+        run: |
+          git diff --name-only HEAD^ HEAD | grep 'charts/.*/.*/Chart.yaml' || true
+
+      - name: Create tags per changed chart
+        if: steps.changed.outputs != ''
+        run: |
+          set -euo pipefail
+          for f in $(git diff --name-only HEAD^ HEAD | grep 'charts/.*/.*/Chart.yaml'); do
+            chart_dir=$(dirname "$f")
+            name=$(yq -r '.name' "$f")
+            ver=$(yq -r '.version' "$f")
+            tag="${name}-v${ver}"
+            if ! git tag -l | grep -qx "$tag"; then
+              git tag -a "$tag" -m "Release $tag"
+              git push origin "$tag"
+            fi
+          done
+

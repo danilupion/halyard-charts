@@ -1,0 +1,27 @@
+name: Helm chart CI
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'charts/**'
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+
+      - name: Lint charts
+        run: |
+          for c in charts/*/*; do
+            [ -f "$c/Chart.yaml" ] && helm lint "$c" || true
+          done
+
+      - name: Template check (no cluster required)
+        run: |
+          for c in charts/*/*; do
+            [ -f "$c/Chart.yaml" ] && helm template test "$c" || true
+          done
