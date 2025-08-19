@@ -1,6 +1,6 @@
 # letsencrypt-cloudflare-issuer
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Cert-Manager (Cluster)Issuer(s) backed by Let's Encrypt + Cloudflare DNS-01
 
@@ -20,8 +20,10 @@ Cert-Manager (Cluster)Issuer(s) backed by Let's Encrypt + Cloudflare DNS-01
 | instances[0].acme.privateKeySecretName | string | `"letsencrypt-prod-key"` |  |
 | instances[0].acme.server | string | `"https://acme-v02.api.letsencrypt.org/directory"` |  |
 | instances[0].cloudflare.secret.create | bool | `false` |  |
+| instances[0].cloudflare.secret.encryptedData.api-token | string | `""` |  |
 | instances[0].cloudflare.secret.key | string | `"api-token"` |  |
 | instances[0].cloudflare.secret.name | string | `"cloudflare-api-token-secret"` |  |
+| instances[0].cloudflare.secret.sealed | bool | `false` |  |
 | instances[0].cloudflare.secret.stringData.api-token | string | `""` |  |
 | instances[0].name | string | `"letsencrypt-prod"` |  |
 

@@ -31,27 +31,53 @@
                 },
                 "required": ["name", "key"]
               },
-              "secret": {
-                "type": "object",
-                "properties": {
-                  "create": { "type": "boolean", "default": false },
-                  "name": { "type": "string" },
-                  "key": { "type": "string", "default": "api-token" },
-                  "stringData": {
-                    "type": "object",
-                    "properties": {
-                      "api-token": { "type": "string" }
+                "secret": {
+                  "type": "object",
+                  "properties": {
+                    "create": { "type": "boolean", "default": false },
+                    "name": { "type": "string" },
+                    "key": { "type": "string", "default": "api-token" },
+                    "sealed": { "type": "boolean", "default": false },
+                    "stringData": {
+                      "type": "object",
+                      "additionalProperties": { "type": "string" }
                     },
-                    "required": []
-                  }
-                },
-                "required": ["name"]
-              }
-            },
-            "anyOf": [
-              { "required": ["apiTokenSecretRef"] },
-              { "required": ["secret"] }
-            ]
+                    "encryptedData": {
+                      "type": "object",
+                      "additionalProperties": { "type": "string" }
+                    }
+                  },
+                  "required": ["name"],
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": { "create": { "const": true }, "sealed": { "const": true } },
+                        "required": ["create", "sealed"]
+                      },
+                      "then": { "required": ["encryptedData"], "not": { "required": ["stringData"] } }
+                    },
+                    {
+                      "if": {
+                        "properties": { "create": { "const": true }, "sealed": { "const": false } },
+                        "required": ["create", "sealed"]
+                      },
+                      "then": { "required": ["stringData"], "not": { "required": ["encryptedData"] } }
+                    },
+                    {
+                      "if": {
+                        "properties": { "create": { "const": true } },
+                        "required": ["create"],
+                        "not": { "required": ["sealed"] }
+                      },
+                      "then": { "required": ["stringData"], "not": { "required": ["encryptedData"] } }
+                    }
+                  ]
+                }
+              },
+              "anyOf": [
+                { "required": ["apiTokenSecretRef"] },
+                { "required": ["secret"] }
+              ]
           },
           "solvers": { "type": "array" }
         },
