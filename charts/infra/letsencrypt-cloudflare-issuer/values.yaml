@@ -11,18 +11,17 @@ instances:
       server: https://acme-v02.api.letsencrypt.org/directory
       privateKeySecretName: letsencrypt-prod-key
     cloudflare:
-      ## Option 1) Let the chart create/use a secret with the Cloudflare API token for this issuer
+      ## Option 1) Let the chart create/use a secret (or sealed secret) with the Cloudflare API token for this issuer
       # secret:
-      #  create: false
-      #  name: cloudflare-api-token-secret
-      #  key: api-token
-      #  stringData:
-      #    api-token: "" # set only if create=true
-      ## Option 2) Let the chat create/use a sealed secret
-      # sealedSecret:
       #   create: false
-      #   encryptedData: { }
-      ## Option 3) Reference a different existing secret
+      #   name: cloudflare-api-token-secret
+      #   key: api-token
+      #   sealed: false
+      #   stringData:
+      #     api-token: "" # set only if create=true and sealed=false
+      #   encryptedData:
+      #     api-token: "" # set only if create=true and sealed=true (encrypted with kubeseal)
+      ## Option 2) Reference a different existing secret
       # apiTokenSecretRef:
       #   name: other-secret
       #   key: api-token
