@@ -1,0 +1,7 @@
+# Only lint charts under ./charts/** (skip lib/)
+chart-dirs:
+  - charts
+excluded-charts: []
+check-version-increment: false
+validate-maintainers: false
+helm-extra-args: "--strict"

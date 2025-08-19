@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      # Enforces formatting during commit
+      - id: prettier
+        name: prettier (check)
+        entry: npx prettier --ignore-unknown --check
+        language: node
+        types: [file]
+
+      # Optional: run manually to fix formatting
+      - id: prettier-fix
+        name: prettier (fix)
+        entry: npx prettier --ignore-unknown --write
+        language: node
+        types: [file]
+        stages: [manual]
+
+      - id: ct-lint
+        name: chart-testing lint
+        entry: ct lint --config ct.yaml
+        language: system
+        pass_filenames: false
+        files: ^charts/
+        stages: [pre-commit]

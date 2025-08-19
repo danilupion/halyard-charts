@@ -1,0 +1,14 @@
+extends: default
+
+rules:
+  line-length: { max: 120 }
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+  document-start: disable
+  truthy: disable
+  # Helm templates often use unquoted strings and templating braces
+  comments-indentation: disable
+ignore: |
+  # ignore rendered or vendored content if present
+  charts/**/charts/**/*
