@@ -1,0 +1,11 @@
+apiVersion: v2
+name: metallb-config
+description: Generic MetalLB configuration (multiple pools, ads)
+type: application
+version: 1.0.0
+keywords:
+  - metallb
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common

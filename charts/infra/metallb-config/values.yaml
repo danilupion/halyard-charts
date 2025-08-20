@@ -1,0 +1,20 @@
+pools:
+  # Example public pool
+  - name: public
+    addresses:
+      - 192.168.1.200-192.168.1.210
+    autoAssign: true           # optional
+    avoidBuggyIPs: true        # optional
+    serviceAllocation:
+      priority: 0              # optional (v1beta1: ServiceAllocation is optional)
+  # Example private pool
+  - name: private
+    addresses:
+      - 10.0.0.200-10.0.0.210
+    autoAssign: true
+
+l2Advertisements:
+  - name: public
+    ipAddressPools: [public]
+  - name: private
+    ipAddressPools: [private]
