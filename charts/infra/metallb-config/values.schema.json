@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "commonLabels": { "type": "object", "additionalProperties": true },
+    "commonAnnotations": { "type": "object", "additionalProperties": true },
+    "pools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "addresses": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "autoAssign": { "type": "boolean" },
+          "avoidBuggyIPs": { "type": "boolean" },
+          "serviceAllocation": {
+            "type": "object",
+            "properties": {
+              "priority": { "type": "integer" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "required": ["name", "addresses"]
+      }
+    },
+    "l2Advertisements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "ipAddressPools": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["name"]
+      }
+    }
+  }
+}
