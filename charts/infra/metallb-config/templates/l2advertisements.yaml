@@ -1,8 +1,18 @@
+{{- $root := . -}}
 {{- range $ad := .Values.l2Advertisements | default list }}
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
   name: {{ $ad.name | required "l2Advertisements[].name is required" | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "common.labels" $root | nindent 4 }}
+  {{- with $root.Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $root.Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- with $ad.ipAddressPools }}
   ipAddressPools:

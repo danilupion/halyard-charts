@@ -1,0 +1,3 @@
+This chart configures MetalLB by creating IPAddressPool and L2Advertisement resources.
+
+Ensure MetalLB is installed in your cluster before deploying this chart.

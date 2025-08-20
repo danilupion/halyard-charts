@@ -4,6 +4,15 @@ apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
   name: {{ $pool.name | required "pool.name is required" | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "common.labels" $root | nindent 4 }}
+  {{- with $root.Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $root.Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   addresses:
     {{- range $pool.addresses }}

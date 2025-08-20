@@ -1,12 +1,16 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
 pools:
   # Example public pool
   - name: public
     addresses:
       - 192.168.1.200-192.168.1.210
-    autoAssign: true           # optional
-    avoidBuggyIPs: true        # optional
+    autoAssign: true # optional
+    avoidBuggyIPs: true # optional
     serviceAllocation:
-      priority: 0              # optional (v1beta1: ServiceAllocation is optional)
+      priority: 0 # optional (v1beta1: ServiceAllocation is optional)
   # Example private pool
   - name: private
     addresses:

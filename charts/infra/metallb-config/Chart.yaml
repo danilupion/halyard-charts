@@ -1,6 +1,6 @@
 apiVersion: v2
 name: metallb-config
-description: Generic MetalLB configuration (multiple pools, ads)
+description: Generic MetalLB configuration (multiple pools and l2advertisements)
 type: application
 version: 1.0.0
 keywords:
