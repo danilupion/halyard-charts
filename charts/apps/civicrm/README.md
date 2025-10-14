@@ -53,6 +53,8 @@ helm install my-civicrm ./charts/apps/civicrm \
 
 | Parameter                        | Description                          | Default                      |
 | -------------------------------- | ------------------------------------ | ---------------------------- |
+| `nameOverride`                   | Override chart name                  | `""`                         |
+| `fullnameOverride`               | Override full resource names         | `""`                         |
 | `civicrm.baseUrl`                | Base URL for CiviCRM (required)      | `http://civicrm.example.com` |
 | `civicrm.siteKey`                | Site key for security                | `""`                         |
 | `database.host`                  | Database hostname (required)         | `""`                         |
@@ -109,6 +111,37 @@ persistence:
   extensions:
     existingClaim: my-civicrm-ext-pvc
 ```
+
+## Resource Naming
+
+By default, resources are named `{release-name}-civicrm`. You can customize this:
+
+### Using fullnameOverride for simple names
+
+```bash
+# Creates service named "crm" instead of "my-release-civicrm"
+helm install my-release charts/apps/civicrm \
+  --set database.host=mysql \
+  --set database.existingSecret=civicrm-db-secret \
+  --set fullnameOverride=crm
+```
+
+This creates:
+- Service: `crm` (instead of `my-release-civicrm`)
+- Deployment: `crm` (instead of `my-release-civicrm`)
+- PVCs: `crm-public`, `crm-private`, `crm-ext`
+
+**Connection string:** `http://crm.default.svc.cluster.local`
+
+### Using nameOverride
+
+```bash
+# Changes the chart name component only
+helm install my-app charts/apps/civicrm \
+  --set nameOverride=webapp
+```
+
+This creates resources named `my-app-webapp`.
 
 ## Security
 

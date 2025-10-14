@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  {{- include "common.metadata" (dict "name" .Release.Name "root" $) | nindent 2 }}
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -50,7 +50,7 @@ spec:
             {{- if .Values.civicrm.existingSecretSiteKey }}
             {{- include "common.envSecret" (dict "name" "CIVICRM_SITE_KEY" "secret" .Values.civicrm.existingSecretSiteKey "key" .Values.civicrm.existingSecretSiteKeyKey) | nindent 12 }}
             {{- else }}
-            {{- include "common.envSecret" (dict "name" "CIVICRM_SITE_KEY" "secret" (printf "%s-sitekey" .Release.Name) "key" "site-key") | nindent 12 }}
+            {{- include "common.envSecret" (dict "name" "CIVICRM_SITE_KEY" "secret" (printf "%s-sitekey" (include "common.fullname" .)) "key" "site-key") | nindent 12 }}
             {{- end }}
             {{- end }}
 
@@ -88,17 +88,17 @@ spec:
         {{- if .Values.persistence.public.enabled }}
         - name: public
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.public.existingClaim | default (printf "%s-public" .Release.Name) }}
+            claimName: {{ .Values.persistence.public.existingClaim | default (printf "%s-public" (include "common.fullname" .)) }}
         {{- end }}
         {{- if .Values.persistence.private.enabled }}
         - name: private
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.private.existingClaim | default (printf "%s-private" .Release.Name) }}
+            claimName: {{ .Values.persistence.private.existingClaim | default (printf "%s-private" (include "common.fullname" .)) }}
         {{- end }}
         {{- if .Values.persistence.extensions.enabled }}
         - name: ext
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.extensions.existingClaim | default (printf "%s-ext" .Release.Name) }}
+            claimName: {{ .Values.persistence.extensions.existingClaim | default (printf "%s-ext" (include "common.fullname" .)) }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

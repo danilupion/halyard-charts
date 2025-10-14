@@ -1,11 +1,12 @@
 {{- $root := . -}}
+{{- $fullname := include "common.fullname" . -}}
 {{- range $name, $config := dict "public" .Values.persistence.public "private" .Values.persistence.private "ext" .Values.persistence.extensions }}
 {{- if and $config.enabled (not $config.existingClaim) }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  {{- include "common.metadata" (dict "name" (printf "%s-%s" $root.Release.Name $name) "root" $root) | nindent 2 }}
+  {{- include "common.metadata" (dict "name" (printf "%s-%s" $fullname $name) "root" $root) | nindent 2 }}
 spec:
   {{- with $config.accessModes }}
   accessModes:

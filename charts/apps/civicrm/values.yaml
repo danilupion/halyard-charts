@@ -2,6 +2,14 @@
 commonLabels: {}
 commonAnnotations: {}
 
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the resources
+# This is useful for creating simpler service names
+# Example: fullnameOverride: "crm" creates a service named "crm" instead of "release-civicrm"
+fullnameOverride: ""
+
 # CiviCRM container image
 image:
   repository: civicrm/civicrm
