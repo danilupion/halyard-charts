@@ -1,6 +1,6 @@
 # mysql
 
-![Version: 1.1.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.4.0](https://img.shields.io/badge/AppVersion-9.4.0-informational?style=flat-square)
+![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.4.0](https://img.shields.io/badge/AppVersion-9.4.0-informational?style=flat-square)
 
 MySQL standalone database server
 
@@ -141,6 +141,8 @@ metrics:
 
 Metrics are exposed on port `9104` at `/metrics`.
 
+**Configuration**: The exporter is configured to use the `root` user credentials from the same secret as MySQL. The `--mysqld.username=root` flag ensures the exporter uses the DATA_SOURCE_NAME environment variable directly without requiring a `.my.cnf` file.
+
 ## Health Checks
 
 The chart configures three types of probes:
@@ -269,6 +271,20 @@ kubectl logs my-mysql-0 -c metrics  # If metrics enabled
 ```bash
 kubectl exec -it my-mysql-0 -- mysql -uroot -p
 ```
+
+### Metrics exporter issues
+
+If the metrics exporter fails with "no user specified" error:
+
+```bash
+# Check exporter logs
+kubectl logs my-mysql-0 -c metrics
+
+# Verify the exporter has the correct configuration
+kubectl exec -it my-mysql-0 -c metrics -- env | grep -E '(DATA_SOURCE_NAME|MYSQLD)'
+```
+
+The exporter is configured with `--mysqld.username=root` to use the DATA_SOURCE_NAME environment variable directly. It waits 30 seconds after pod start before attempting connections to ensure MySQL is ready.
 
 ## Resources
 

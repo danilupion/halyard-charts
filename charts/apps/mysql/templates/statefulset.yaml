@@ -80,8 +80,6 @@ spec:
             - name: config
               mountPath: /etc/mysql/conf.d
             {{- end }}
-          args:
-            - --default-authentication-plugin=caching_sha2_password
           {{- if .Values.primary.livenessProbe.enabled }}
           livenessProbe:
             exec:
@@ -132,6 +130,8 @@ spec:
             - name: metrics
               containerPort: 9104
               protocol: TCP
+          args:
+            - --mysqld.username=root
           env:
             - name: MYSQLD_EXPORTER_PASSWORD
               valueFrom:
@@ -150,7 +150,7 @@ spec:
             httpGet:
               path: /
               port: metrics
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 5
           {{- with .Values.metrics.resources }}
           resources:
