@@ -1,0 +1,57 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your MySQL database is starting up.
+
+1. Get the MySQL root password:
+
+{{- if .Values.auth.existingSecret }}
+  export MYSQL_ROOT_PASSWORD=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ .Values.auth.existingSecret }} -o jsonpath="{.data.MYSQL_ROOT_PASSWORD}" | base64 -d)
+{{- else }}
+  WARNING: No auth.existingSecret configured!
+  You must create a secret with MYSQL_ROOT_PASSWORD before the database can start.
+
+  Example:
+    kubectl create secret generic {{ .Release.Name }}-auth \
+      --namespace {{ .Release.Namespace }} \
+      --from-literal=MYSQL_ROOT_PASSWORD='your-secure-password'
+
+  Then update your release:
+    helm upgrade {{ .Release.Name }} ./ --set auth.existingSecret={{ .Release.Name }}-auth
+{{- end }}
+
+2. Connect to MySQL from within the cluster:
+
+  To connect to the primary instance:
+
+  kubectl run {{ .Release.Name }}-client --rm --tty -i --restart='Never' \
+    --image {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }} \
+    --namespace {{ .Release.Namespace }} \
+    --command -- mysql -h {{ .Release.Name }}-0.{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local -uroot -p${MYSQL_ROOT_PASSWORD}
+
+3. Connect from outside the cluster:
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }} 3306:3306 &
+  mysql -h 127.0.0.1 -P 3306 -uroot -p${MYSQL_ROOT_PASSWORD}
+
+{{- if .Values.metrics.enabled }}
+
+4. Metrics are exposed on port 9104
+
+  Access Prometheus metrics:
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }} 9104:9104
+
+  {{- if .Values.metrics.serviceMonitor.enabled }}
+  ServiceMonitor has been created for Prometheus Operator scraping.
+  {{- end }}
+{{- end }}
+
+{{- if not .Values.primary.persistence.enabled }}
+
+WARNING: Persistence is disabled! Data will be lost when the pod is terminated.
+For production use, enable persistence:
+  helm upgrade {{ .Release.Name }} ./ --set primary.persistence.enabled=true
+{{- end }}
+
+For more information about MySQL, visit:
+  - MySQL Documentation: https://dev.mysql.com/doc/
+  - Chart Home: {{ .Chart.Home }}

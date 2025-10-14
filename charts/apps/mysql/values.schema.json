@@ -1,0 +1,248 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "commonLabels": {
+      "type": "object",
+      "description": "Labels to apply to all resources"
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "description": "Annotations to apply to all resources"
+    },
+    "architecture": {
+      "type": "string",
+      "enum": ["standalone"],
+      "description": "MySQL architecture type"
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "existingSecret": {
+          "type": "string",
+          "description": "Name of existing secret with MySQL credentials"
+        }
+      },
+      "required": ["existingSecret"]
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": {
+          "type": "string",
+          "description": "Container registry"
+        },
+        "repository": {
+          "type": "string",
+          "description": "Image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      },
+      "required": ["registry", "repository", "tag", "pullPolicy"]
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Image pull secrets"
+    },
+    "primary": {
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "object",
+          "description": "Resource requests and limits"
+        },
+        "persistence": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable persistent storage"
+            },
+            "storageClass": {
+              "type": "string",
+              "description": "Storage class name"
+            },
+            "size": {
+              "type": "string",
+              "pattern": "^[0-9]+(Ei|Pi|Ti|Gi|Mi|Ki)?$",
+              "description": "Volume size"
+            },
+            "accessModes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany", "ReadWriteOncePod"]
+              }
+            }
+          },
+          "required": ["enabled"]
+        },
+        "updateStrategy": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["RollingUpdate", "OnDelete"]
+            }
+          }
+        },
+        "configuration": {
+          "type": "string",
+          "description": "Custom MySQL configuration (my.cnf)"
+        },
+        "livenessProbe": {
+          "$ref": "#/$defs/probeConfig"
+        },
+        "readinessProbe": {
+          "$ref": "#/$defs/probeConfig"
+        },
+        "startupProbe": {
+          "$ref": "#/$defs/probeConfig"
+        },
+        "extraEnv": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Additional environment variables"
+        },
+        "podSecurityContext": {
+          "type": "object",
+          "description": "Pod security context"
+        },
+        "securityContext": {
+          "type": "object",
+          "description": "Container security context"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Service type"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Service port"
+        },
+        "annotations": {
+          "type": "object"
+        }
+      },
+      "required": ["type", "port"]
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable Prometheus metrics exporter"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "registry": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"]
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "description": "Metrics exporter resources"
+        },
+        "serviceMonitor": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "interval": {
+              "type": "string",
+              "pattern": "^[0-9]+(s|m|h)$"
+            },
+            "scrapeTimeout": {
+              "type": "string",
+              "pattern": "^[0-9]+(s|m|h)$"
+            },
+            "labels": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "required": ["enabled"]
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Node selector"
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Tolerations"
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity"
+    }
+  },
+  "required": ["architecture", "auth", "image", "service"],
+  "$defs": {
+    "probeConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "successThreshold": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

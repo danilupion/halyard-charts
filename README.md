@@ -26,6 +26,7 @@ Infrastructure components for cluster setup and management:
 Application deployments ready for production use:
 
 - **[civicrm](charts/apps/civicrm)** - CiviCRM Standalone - open source CRM for nonprofits, NGOs and advocacy organizations
+- **[mysql](charts/apps/mysql)** - MySQL standalone database server with Prometheus metrics
 
 ### Library Charts (`charts/common/`)
 
