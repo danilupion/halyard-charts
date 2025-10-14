@@ -5,7 +5,7 @@ commonAnnotations: {}
 # CiviCRM container image
 image:
   repository: civicrm/civicrm
-  tag: 6.7.1
+  tag: 6.7.1@sha256:01baaf0425e1168d432fdab6637d33866665538c9b3e8f177930be44b247ff8c
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries

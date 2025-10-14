@@ -19,7 +19,7 @@ auth:
 image:
   registry: docker.io
   repository: mysql
-  tag: "9.4.0"
+  tag: "9.4.0@sha256:91447968e66961302339ec4dc4d385f5e1a957d98e63c7d52ecf8b1de0907346"
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
@@ -119,7 +119,7 @@ metrics:
   image:
     registry: docker.io
     repository: prom/mysqld-exporter
-    tag: "v0.15.1"
+    tag: "v0.15.1@sha256:7211a617ec657701ca819aa0ba28e1d5750f5bf2c1391b755cc4a48cc360b0fa"
     pullPolicy: IfNotPresent
 
   # Metrics exporter resources
