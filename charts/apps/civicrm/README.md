@@ -42,7 +42,6 @@ helm install my-civicrm ./charts/apps/civicrm \
   --set database.user=civicrm \
   --set database.existingSecret=civicrm-db-secret \
   --set civicrm.baseUrl=https://civicrm.example.com \
-  --set civicrm.siteKey=$(openssl rand -hex 16) \
   --set ingress.enabled=true \
   --set ingress.hosts[0].host=civicrm.example.com
 ```
@@ -56,7 +55,6 @@ helm install my-civicrm ./charts/apps/civicrm \
 | `nameOverride`                   | Override chart name                  | `""`                         |
 | `fullnameOverride`               | Override full resource names         | `""`                         |
 | `civicrm.baseUrl`                | Base URL for CiviCRM (required)      | `http://civicrm.example.com` |
-| `civicrm.siteKey`                | Site key for security                | `""`                         |
 | `database.host`                  | Database hostname (required)         | `""`                         |
 | `database.port`                  | Database port                        | `3306`                       |
 | `database.name`                  | Database name (required)             | `civicrm`                    |
@@ -147,21 +145,7 @@ This creates resources named `my-app-webapp`.
 
 ### Site Key
 
-CiviCRM requires a site key for security. Generate one:
-
-```bash
-openssl rand -hex 16
-```
-
-Configure it via values or an existing secret:
-
-```yaml
-civicrm:
-  siteKey: "your-generated-site-key"
-  # OR
-  existingSecretSiteKey: civicrm-sitekey-secret
-  existingSecretSiteKeyKey: site-key
-```
+CiviCRM automatically generates a site key during first-time installation. No manual configuration is required. The site key is stored in CiviCRM's configuration files on the persistent storage.
 
 ### Security Context
 

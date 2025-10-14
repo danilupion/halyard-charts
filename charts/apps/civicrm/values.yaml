@@ -25,7 +25,8 @@ replicaCount: 1
 # Service configuration
 service:
   type: ClusterIP
-  port: 80
+  # Port 8080 is used to avoid requiring root privileges (non-root Apache)
+  port: 8080
   annotations: {}
 
 # Ingress configuration for external access
@@ -89,12 +90,6 @@ database:
 civicrm:
   # Base URL for CiviCRM (required)
   baseUrl: "http://civicrm.example.com"
-
-  # Site key for security (generate with: openssl rand -hex 16)
-  siteKey: ""
-  # Store site key in existing secret (recommended)
-  existingSecretSiteKey: ""
-  existingSecretSiteKeyKey: "site-key"
 
   # Additional environment variables
   extraEnv: []

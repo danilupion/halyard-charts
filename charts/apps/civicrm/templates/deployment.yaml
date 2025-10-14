@@ -11,8 +11,6 @@ spec:
     metadata:
       labels:
         {{- include "common.selectorLabels" $ | nindent 8 }}
-      annotations:
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -31,7 +29,7 @@ spec:
           {{- include "common.image" (dict "repository" .Values.image.repository "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           env:
             # Database configuration
@@ -46,13 +44,8 @@ spec:
             # CiviCRM configuration
             {{- include "common.env" (dict "name" "CIVICRM_UF_BASEURL" "value" .Values.civicrm.baseUrl) | nindent 12 }}
 
-            {{- if or .Values.civicrm.siteKey .Values.civicrm.existingSecretSiteKey }}
-            {{- if .Values.civicrm.existingSecretSiteKey }}
-            {{- include "common.envSecret" (dict "name" "CIVICRM_SITE_KEY" "secret" .Values.civicrm.existingSecretSiteKey "key" .Values.civicrm.existingSecretSiteKeyKey) | nindent 12 }}
-            {{- else }}
-            {{- include "common.envSecret" (dict "name" "CIVICRM_SITE_KEY" "secret" (printf "%s-sitekey" (include "common.fullname" .)) "key" "site-key") | nindent 12 }}
-            {{- end }}
-            {{- end }}
+            # Configure Apache to listen on port 8080 for non-root execution
+            {{- include "common.env" (dict "name" "APACHE_PORT" "value" "8080") | nindent 12 }}
 
             # Additional environment variables
             {{- with .Values.civicrm.extraEnv }}

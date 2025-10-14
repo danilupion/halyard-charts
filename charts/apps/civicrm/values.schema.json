@@ -173,18 +173,6 @@
           "type": "string",
           "description": "Base URL for CiviCRM"
         },
-        "siteKey": {
-          "type": "string",
-          "description": "Site key for security"
-        },
-        "existingSecretSiteKey": {
-          "type": "string",
-          "description": "Existing secret containing site key"
-        },
-        "existingSecretSiteKeyKey": {
-          "type": "string",
-          "description": "Key in existing secret for site key"
-        },
         "extraEnv": {
           "type": "array",
           "items": {
