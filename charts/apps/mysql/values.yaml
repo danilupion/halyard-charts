@@ -119,7 +119,7 @@ metrics:
   image:
     registry: docker.io
     repository: prom/mysqld-exporter
-    tag: "v0.15.1@sha256:7211a617ec657701ca819aa0ba28e1d5750f5bf2c1391b755cc4a48cc360b0fa"
+    tag: "v0.18.0@sha256:2598c0571f383708e19016d119bb45c06128a9ebc962c9f49483278ac5a94c41"
     pullPolicy: IfNotPresent
 
   # Metrics exporter resources
