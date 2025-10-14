@@ -1,0 +1,262 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "commonLabels": {
+      "type": "object",
+      "description": "Labels to apply to all resources"
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "description": "Annotations to apply to all resources"
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag (overrides chart appVersion)"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      },
+      "required": ["repository", "pullPolicy"]
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Image pull secrets for private registries"
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of replicas"
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Service type"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Service port"
+        },
+        "annotations": {
+          "type": "object"
+        }
+      },
+      "required": ["type", "port"]
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ingress"
+        },
+        "className": {
+          "type": "string",
+          "description": "Ingress class name"
+        },
+        "annotations": {
+          "type": "object"
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "type": "string"
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "pathType": {
+                      "type": "string",
+                      "enum": ["Prefix", "Exact", "ImplementationSpecific"]
+                    }
+                  },
+                  "required": ["path", "pathType"]
+                }
+              }
+            },
+            "required": ["host", "paths"]
+          }
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": ["enabled"]
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "public": {
+          "$ref": "#/$defs/persistenceSpec"
+        },
+        "private": {
+          "$ref": "#/$defs/persistenceSpec"
+        },
+        "extensions": {
+          "$ref": "#/$defs/persistenceSpec"
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "Database hostname"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Database port"
+        },
+        "name": {
+          "type": "string",
+          "description": "Database name"
+        },
+        "user": {
+          "type": "string",
+          "description": "Database user"
+        },
+        "existingSecret": {
+          "type": "string",
+          "description": "Existing secret containing database password"
+        },
+        "existingSecretPasswordKey": {
+          "type": "string",
+          "description": "Key in existing secret for database password"
+        }
+      },
+      "required": ["host", "name", "user"]
+    },
+    "civicrm": {
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "type": "string",
+          "description": "Base URL for CiviCRM"
+        },
+        "siteKey": {
+          "type": "string",
+          "description": "Site key for security"
+        },
+        "existingSecretSiteKey": {
+          "type": "string",
+          "description": "Existing secret containing site key"
+        },
+        "existingSecretSiteKeyKey": {
+          "type": "string",
+          "description": "Key in existing secret for site key"
+        },
+        "extraEnv": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Additional environment variables"
+        },
+        "extraEnvFrom": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Additional environment variables from secrets/configmaps"
+        }
+      },
+      "required": ["baseUrl"]
+    },
+    "resources": {
+      "type": "object",
+      "description": "Resource limits and requests"
+    },
+    "podSecurityContext": {
+      "type": "object",
+      "description": "Pod security context"
+    },
+    "securityContext": {
+      "type": "object",
+      "description": "Container security context"
+    },
+    "livenessProbe": {
+      "type": "object",
+      "description": "Liveness probe configuration"
+    },
+    "readinessProbe": {
+      "type": "object",
+      "description": "Readiness probe configuration"
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Node selector for pod assignment"
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Tolerations for pod assignment"
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity for pod assignment"
+    }
+  },
+  "required": ["image", "service", "civicrm"],
+  "$defs": {
+    "persistenceSpec": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "storageClassName": {
+          "type": "string"
+        },
+        "accessModes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany", "ReadWriteOncePod"]
+          }
+        },
+        "size": {
+          "type": "string",
+          "pattern": "^[0-9]+(Ei|Pi|Ti|Gi|Mi|Ki)?$"
+        },
+        "existingClaim": {
+          "type": "string"
+        }
+      },
+      "required": ["enabled"]
+    }
+  }
+}

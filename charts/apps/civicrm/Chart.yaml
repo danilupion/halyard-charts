@@ -1,0 +1,19 @@
+apiVersion: v2
+name: civicrm
+description: CiviCRM Standalone - open source CRM for nonprofits, NGOs and advocacy organizations
+type: application
+version: 0.1.0
+appVersion: 6.7.1
+keywords:
+  - civicrm
+  - crm
+  - nonprofit
+  - ngo
+  - fundraising
+home: https://civicrm.org
+sources:
+  - https://github.com/civicrm/civicrm-core
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common

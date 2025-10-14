@@ -1,0 +1,25 @@
+{{- $root := . -}}
+{{- range $name, $config := dict "public" .Values.persistence.public "private" .Values.persistence.private "ext" .Values.persistence.extensions }}
+{{- if and $config.enabled (not $config.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-%s" $root.Release.Name $name) "root" $root) | nindent 2 }}
+spec:
+  {{- with $config.accessModes }}
+  accessModes:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $config.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $config.size | required "storage size is required" }}
+  {{- with $config.selector }}
+  selector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

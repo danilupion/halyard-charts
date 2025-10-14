@@ -1,0 +1,150 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# CiviCRM container image
+image:
+  repository: civicrm/civicrm
+  tag: 6.7.1
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of CiviCRM replicas (recommend 1 for stateful applications)
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+# Ingress configuration for external access
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: civicrm.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: civicrm-tls
+    #   hosts:
+    #     - civicrm.example.com
+
+# Persistent storage for CiviCRM directories
+persistence:
+  # Public files (uploads, generated files)
+  public:
+    enabled: true
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+    # Optional: use existing PVC
+    existingClaim: ""
+
+  # Private files (templates, logs)
+  private:
+    enabled: true
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+    existingClaim: ""
+
+  # Extensions directory
+  extensions:
+    enabled: true
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+    existingClaim: ""
+
+# Database configuration (external database required)
+database:
+  host: ""
+  port: 3306
+  name: civicrm
+  user: civicrm
+  # Password should be provided via existing secret
+  existingSecret: ""
+  existingSecretPasswordKey: "password"
+
+# CiviCRM configuration
+civicrm:
+  # Base URL for CiviCRM (required)
+  baseUrl: "http://civicrm.example.com"
+
+  # Site key for security (generate with: openssl rand -hex 16)
+  siteKey: ""
+  # Store site key in existing secret (recommended)
+  existingSecretSiteKey: ""
+  existingSecretSiteKeyKey: "site-key"
+
+  # Additional environment variables
+  extraEnv: []
+    # - name: CIVICRM_SETTING_DOMAIN_DEBUG
+    #   value: "1"
+
+  # Extra environment variables from secrets/configmaps
+  extraEnvFrom: []
+    # - secretRef:
+    #     name: civicrm-secrets
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 1000m
+  #   memory: 1Gi
+  # requests:
+  #   cpu: 500m
+  #   memory: 512Mi
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 33 # www-data
+
+# Container security context
+securityContext:
+  runAsUser: 33 # www-data
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Liveness probe configuration
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+# Readiness probe configuration
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}

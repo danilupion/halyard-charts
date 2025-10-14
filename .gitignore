@@ -12,3 +12,9 @@
 *.njsproj
 *.sln
 *.sw?
+
+# Helm
+Chart.lock
+charts/*/charts/
+charts/*/*/charts/
+*.tgz

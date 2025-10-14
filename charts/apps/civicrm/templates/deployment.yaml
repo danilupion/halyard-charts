@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" .Release.Name "root" $) | nindent 2 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" $ | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" $ | nindent 8 }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: civicrm
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "common.image" (dict "repository" .Values.image.repository "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            # Database configuration
+            {{- include "common.env" (dict "name" "CIVICRM_DB_HOST" "value" .Values.database.host) | nindent 12 }}
+            {{- include "common.env" (dict "name" "CIVICRM_DB_PORT" "value" (.Values.database.port | toString)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "CIVICRM_DB_NAME" "value" .Values.database.name) | nindent 12 }}
+            {{- include "common.env" (dict "name" "CIVICRM_DB_USER" "value" .Values.database.user) | nindent 12 }}
+            {{- if .Values.database.existingSecret }}
+            {{- include "common.envSecret" (dict "name" "CIVICRM_DB_PASSWORD" "secret" .Values.database.existingSecret "key" .Values.database.existingSecretPasswordKey) | nindent 12 }}
+            {{- end }}
+
+            # CiviCRM configuration
+            {{- include "common.env" (dict "name" "CIVICRM_UF_BASEURL" "value" .Values.civicrm.baseUrl) | nindent 12 }}
+
+            {{- if or .Values.civicrm.siteKey .Values.civicrm.existingSecretSiteKey }}
+            {{- if .Values.civicrm.existingSecretSiteKey }}
+            {{- include "common.envSecret" (dict "name" "CIVICRM_SITE_KEY" "secret" .Values.civicrm.existingSecretSiteKey "key" .Values.civicrm.existingSecretSiteKeyKey) | nindent 12 }}
+            {{- else }}
+            {{- include "common.envSecret" (dict "name" "CIVICRM_SITE_KEY" "secret" (printf "%s-sitekey" .Release.Name) "key" "site-key") | nindent 12 }}
+            {{- end }}
+            {{- end }}
+
+            # Additional environment variables
+            {{- with .Values.civicrm.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.civicrm.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.public.enabled }}
+            {{- include "common.volumeMount" (dict "name" "public" "mountPath" "/var/www/html/public") | nindent 12 }}
+            {{- end }}
+            {{- if .Values.persistence.private.enabled }}
+            {{- include "common.volumeMount" (dict "name" "private" "mountPath" "/var/www/html/private") | nindent 12 }}
+            {{- end }}
+            {{- if .Values.persistence.extensions.enabled }}
+            {{- include "common.volumeMount" (dict "name" "ext" "mountPath" "/var/www/html/ext") | nindent 12 }}
+            {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        {{- if .Values.persistence.public.enabled }}
+        - name: public
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.public.existingClaim | default (printf "%s-public" .Release.Name) }}
+        {{- end }}
+        {{- if .Values.persistence.private.enabled }}
+        - name: private
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.private.existingClaim | default (printf "%s-private" .Release.Name) }}
+        {{- end }}
+        {{- if .Values.persistence.extensions.enabled }}
+        - name: ext
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.extensions.existingClaim | default (printf "%s-ext" .Release.Name) }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
