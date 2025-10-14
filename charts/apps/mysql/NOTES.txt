@@ -11,26 +11,26 @@ Your MySQL database is starting up.
   You must create a secret with MYSQL_ROOT_PASSWORD before the database can start.
 
   Example:
-    kubectl create secret generic {{ .Release.Name }}-auth \
+    kubectl create secret generic {{ include "common.fullname" . }}-auth \
       --namespace {{ .Release.Namespace }} \
       --from-literal=MYSQL_ROOT_PASSWORD='your-secure-password'
 
   Then update your release:
-    helm upgrade {{ .Release.Name }} ./ --set auth.existingSecret={{ .Release.Name }}-auth
+    helm upgrade {{ .Release.Name }} ./ --set auth.existingSecret={{ include "common.fullname" . }}-auth
 {{- end }}
 
 2. Connect to MySQL from within the cluster:
 
   To connect to the primary instance:
 
-  kubectl run {{ .Release.Name }}-client --rm --tty -i --restart='Never' \
+  kubectl run {{ include "common.fullname" . }}-client --rm --tty -i --restart='Never' \
     --image {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }} \
     --namespace {{ .Release.Namespace }} \
-    --command -- mysql -h {{ .Release.Name }}-0.{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local -uroot -p${MYSQL_ROOT_PASSWORD}
+    --command -- mysql -h {{ include "common.fullname" . }}-0.{{ include "common.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local -uroot -p${MYSQL_ROOT_PASSWORD}
 
 3. Connect from outside the cluster:
 
-  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }} 3306:3306 &
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "common.fullname" . }} 3306:3306 &
   mysql -h 127.0.0.1 -P 3306 -uroot -p${MYSQL_ROOT_PASSWORD}
 
 {{- if .Values.metrics.enabled }}
@@ -38,7 +38,7 @@ Your MySQL database is starting up.
 4. Metrics are exposed on port 9104
 
   Access Prometheus metrics:
-  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }} 9104:9104
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "common.fullname" . }} 9104:9104
 
   {{- if .Values.metrics.serviceMonitor.enabled }}
   ServiceMonitor has been created for Prometheus Operator scraping.

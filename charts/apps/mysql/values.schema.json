@@ -10,6 +10,14 @@
       "type": "object",
       "description": "Annotations to apply to all resources"
     },
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the name of the chart"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the full name of resources"
+    },
     "architecture": {
       "type": "string",
       "enum": ["standalone"],

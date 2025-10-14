@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  {{- include "common.metadata" (dict "name" .Release.Name "root" $) | nindent 2 }}
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
 spec:
-  serviceName: {{ .Release.Name }}
+  serviceName: {{ include "common.fullname" . }}
   replicas: 1
   {{- with .Values.primary.updateStrategy }}
   updateStrategy:
@@ -80,6 +80,8 @@ spec:
             - name: config
               mountPath: /etc/mysql/conf.d
             {{- end }}
+          args:
+            - --default-authentication-plugin=caching_sha2_password
           {{- if .Values.primary.livenessProbe.enabled }}
           livenessProbe:
             exec:
@@ -159,7 +161,7 @@ spec:
         {{- if .Values.primary.configuration }}
         - name: config
           configMap:
-            name: {{ .Release.Name }}-config
+            name: {{ include "common.fullname" . }}-config
         {{- end }}
         {{- if not .Values.primary.persistence.enabled }}
         - name: data

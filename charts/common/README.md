@@ -23,6 +23,33 @@ Reference the helpers via the `common` chart name in your templates:
 
 ## Available Helpers
 
+### Naming
+
+#### `common.name`
+
+Chart name with optional override.
+
+```yaml
+{{ include "common.name" . }}
+```
+
+Respects `values.nameOverride` if set.
+
+#### `common.fullname`
+
+Full resource name with smart defaults.
+
+```yaml
+{{ include "common.fullname" . }}
+```
+
+Returns:
+- `values.fullnameOverride` if set (truncated to 63 chars)
+- `{release-name}` if release name contains chart name
+- `{release-name}-{chart-name}` otherwise
+
+Respects `values.nameOverride` for the chart name component.
+
 ### Labels and Metadata
 
 #### `common.labels`

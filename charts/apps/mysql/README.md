@@ -1,6 +1,6 @@
 # mysql
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.4.0](https://img.shields.io/badge/AppVersion-9.4.0-informational?style=flat-square)
+![Version: 1.1.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.4.0](https://img.shields.io/badge/AppVersion-9.4.0-informational?style=flat-square)
 
 MySQL standalone database server
 
@@ -58,6 +58,8 @@ helm install my-mysql ./charts/apps/mysql \
 
 | Parameter                        | Description                          | Default          |
 | -------------------------------- | ------------------------------------ | ---------------- |
+| `nameOverride`                   | Override chart name                  | `""`             |
+| `fullnameOverride`               | Override full resource names         | `""`             |
 | `architecture`                   | MySQL architecture (standalone only) | `standalone`     |
 | `auth.existingSecret`            | Secret name with credentials         | `""`             |
 | `image.registry`                 | Container registry                   | `docker.io`      |
@@ -167,13 +169,47 @@ primary:
         - ALL
 ```
 
+## Resource Naming
+
+By default, resources are named `{release-name}-mysql`. You can customize this:
+
+### Using fullnameOverride for simple names
+
+```bash
+# Creates service named "db" instead of "my-release-mysql"
+helm install my-release charts/apps/mysql \
+  --set auth.existingSecret=mysql-auth \
+  --set fullnameOverride=db
+```
+
+This creates:
+- Service: `db` (instead of `my-release-mysql`)
+- StatefulSet: `db` (instead of `my-release-mysql`)
+- Pod: `db-0` (instead of `my-release-mysql-0`)
+
+**Connection string:** `mysql -h db.default.svc.cluster.local -uroot -p`
+
+### Using nameOverride
+
+```bash
+# Changes the chart name component only
+helm install my-release charts/apps/mysql \
+  --set auth.existingSecret=mysql-auth \
+  --set nameOverride=database
+```
+
+This creates resources named `my-release-database`.
+
 ## Connecting to MySQL
 
 ### From within the cluster
 
 ```bash
-# Using the StatefulSet pod name
+# Default naming (release: my-mysql)
 mysql -h my-mysql-0.my-mysql.default.svc.cluster.local -uroot -p
+
+# With fullnameOverride=db
+mysql -h db-0.db.default.svc.cluster.local -uroot -p
 
 # Using the headless service (resolves to pod)
 mysql -h my-mysql.default.svc.cluster.local -uroot -p

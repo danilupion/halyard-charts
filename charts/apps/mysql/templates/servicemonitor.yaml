@@ -2,7 +2,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  {{- include "common.metadata" (dict "name" (printf "%s-metrics" .Release.Name) "root" $) | nindent 2 }}
+  {{- include "common.metadata" (dict "name" (printf "%s-metrics" (include "common.fullname" .)) "root" $) | nindent 2 }}
   {{- with .Values.metrics.serviceMonitor.labels }}
   labels:
     {{- toYaml . | nindent 4 }}
