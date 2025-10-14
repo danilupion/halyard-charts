@@ -30,7 +30,7 @@ CiviCRM is a web-based, open source CRM (Constituent Relationship Management) so
 3. Create a Kubernetes secret with the database password:
    ```bash
    kubectl create secret generic civicrm-db-secret \
-     --from-literal=password='secure-password'
+     --from-literal=password='secure-db-password'
    ```
 
 ### Installation
@@ -54,6 +54,7 @@ helm install my-civicrm ./charts/apps/civicrm \
 | -------------------------------- | ------------------------------------ | ---------------------------- |
 | `nameOverride`                   | Override chart name                  | `""`                         |
 | `fullnameOverride`               | Override full resource names         | `""`                         |
+| `service.port`                   | Service port (8080 for non-root)     | `8080`                       |
 | `civicrm.baseUrl`                | Base URL for CiviCRM (required)      | `http://civicrm.example.com` |
 | `database.host`                  | Database hostname (required)         | `""`                         |
 | `database.port`                  | Database port                        | `3306`                       |
@@ -70,9 +71,92 @@ helm install my-civicrm ./charts/apps/civicrm \
 
 See `values.yaml` for the complete list of configurable values.
 
-## Database Configuration
+## Initial Installation
 
-CiviCRM requires an external MySQL 5.7+ or MariaDB 10.0.2+ database. Configure it in your values:
+CiviCRM requires a one-time installation after the first deployment. You can use either method:
+
+### Option 1: Web Installer (Recommended)
+
+1. Navigate to your CiviCRM URL (e.g., `https://civicrm.example.com`)
+2. Fill in the installation form:
+   - **Database Server**: `{database.host}:{database.port}` (e.g., `mysql:3306`)
+   - **Database Name**: `{database.name}` (e.g., `civicrm`)
+   - **Database Username**: `{database.user}` (e.g., `civicrm`)
+   - **Database Password**: The password from your secret
+   - **Admin Email**: `your-admin@example.com`
+   - **Admin Password**: Your secure admin password
+3. Click "Install CiviCRM"
+
+### Option 2: Command Line Installation
+
+Execute into the pod and run the installation command:
+
+```bash
+# Get the pod name
+kubectl get pods -l app.kubernetes.io/name=civicrm
+
+# Execute into the pod
+kubectl exec -it <pod-name> -- bash
+
+# Run the installation (replace values with your configuration)
+cv core:install \
+  --db="mysql://<database.user>:<database.password>@<database.host>:<database.port>/<database.name>" \
+  --cms-base-url="<civicrm.baseUrl>" \
+  -m extras.adminUser="admin" \
+  -m extras.adminPass="<your-admin-password>" \
+  -m extras.adminEmail="<your-admin-email>"
+```
+
+**Example**:
+```bash
+cv core:install \
+  --db="mysql://civicrm:mypassword@mysql:3306/civicrm" \
+  --cms-base-url="https://civicrm.example.com" \
+  -m extras.adminUser="admin" \
+  -m extras.adminPass="AdminPass123" \
+  -m extras.adminEmail="admin@example.com"
+```
+
+**Note**: The installation persists to the database and persistent volumes. Pod restarts will not affect the installed CiviCRM instance.
+
+## Database Setup
+
+CiviCRM requires an external MySQL 5.7+ or MariaDB 10.0.2+ database.
+
+### MySQL/MariaDB Configuration
+
+Create the database and user with proper encoding and permissions:
+
+```sql
+CREATE DATABASE civicrm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'civicrm'@'%' IDENTIFIED BY 'your-secure-password';
+GRANT ALL PRIVILEGES ON civicrm.* TO 'civicrm'@'%';
+FLUSH PRIVILEGES;
+```
+
+**Important**: The `utf8mb4` character set is required for full Unicode support, including emoji and special characters.
+
+### Create Kubernetes Secret
+
+Create a secret for the database password:
+
+```bash
+kubectl create secret generic civicrm-db-secret \
+  --namespace=default \
+  --from-literal=password='your-secure-password'
+```
+
+For specific namespaces:
+
+```bash
+kubectl create secret generic pauseai-es-civicrm-db \
+  --namespace=pauseai-es \
+  --from-literal=password='your-secure-password'
+```
+
+### Helm Configuration
+
+Configure the database connection in your values:
 
 ```yaml
 database:
@@ -82,12 +166,6 @@ database:
   user: civicrm
   existingSecret: civicrm-db-secret
   existingSecretPasswordKey: password
-```
-
-The database must be created with UTF-8MB4 encoding:
-
-```sql
-CREATE DATABASE civicrm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ## Persistence
@@ -157,6 +235,8 @@ securityContext:
   runAsNonRoot: true
   allowPrivilegeEscalation: false
 ```
+
+**Port Configuration**: CiviCRM runs on port 8080 instead of 80 to support non-root execution. Apache is configured via the `APACHE_PORT` environment variable to listen on port 8080, which doesn't require root privileges. The ingress controller handles external port 80/443 traffic and routes it to the service on port 8080.
 
 ## Ingress
 
