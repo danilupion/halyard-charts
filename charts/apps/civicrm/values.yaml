@@ -124,24 +124,24 @@ securityContext:
       - ALL
 
 # Liveness probe configuration
-livenessProbe:
-  httpGet:
-    path: /civicrm/login
-    port: http
-  initialDelaySeconds: 60
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 6
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#  initialDelaySeconds: 60
+#  periodSeconds: 10
+#  timeoutSeconds: 5
+#  failureThreshold: 6
 
 # Readiness probe configuration
-readinessProbe:
-  httpGet:
-    path: /civicrm/login
-    port: http
-  initialDelaySeconds: 5
-  periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 3
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#  initialDelaySeconds: 5
+#  periodSeconds: 5
+#  timeoutSeconds: 3
+#  failureThreshold: 3
 
 # Node selector for pod assignment
 nodeSelector: {}
