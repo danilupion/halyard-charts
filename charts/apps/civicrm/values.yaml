@@ -13,7 +13,7 @@ fullnameOverride: ""
 # CiviCRM container image
 image:
   repository: civicrm/civicrm
-  tag: 6.7.1@sha256:6e42aa4906d2acc66499dc8ed1fa78b81bd389ec9c4f1805ff156932223424ea
+  tag: 6.7.1@sha256:94102ae7c9a89b63285e928b65bd6ac7152a187fb8b38c6f0a52b595634a948c
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
