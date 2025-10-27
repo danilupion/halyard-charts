@@ -14,7 +14,7 @@ replicaCount: 1
 # Container image configuration
 image:
   repository: ghcr.io/linuxserver/obsidian
-  tag: "1.5.3"
+  tag: "1.9.14@sha256:3812b752e0bebd7ab81b3fad43c6d654e0ab884151c27c821ac5ab0562c959a5"
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
