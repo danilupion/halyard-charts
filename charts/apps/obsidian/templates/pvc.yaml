@@ -1,0 +1,17 @@
+{{- if and .Values.persistence.config.enabled (not .Values.persistence.config.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-config" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  {{- with .Values.persistence.config.accessModes }}
+  accessModes:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.persistence.config.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.config.size | required "persistence.config.size is required" }}
+{{- end }}
