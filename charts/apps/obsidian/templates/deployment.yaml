@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" $ | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" $ | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: obsidian
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "common.image" (dict "repository" .Values.image.repository "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: websocket
+              containerPort: 3001
+              protocol: TCP
+          {{- if or .Values.linuxserver.puid .Values.linuxserver.pgid .Values.linuxserver.timezone .Values.linuxserver.umask .Values.linuxserver.subfolder .Values.extraEnv }}
+          env:
+            {{- with .Values.linuxserver.puid }}
+            {{- include "common.env" (dict "name" "PUID" "value" .) | nindent 12 }}
+            {{- end }}
+            {{- with .Values.linuxserver.pgid }}
+            {{- include "common.env" (dict "name" "PGID" "value" .) | nindent 12 }}
+            {{- end }}
+            {{- with .Values.linuxserver.timezone }}
+            {{- include "common.env" (dict "name" "TZ" "value" .) | nindent 12 }}
+            {{- end }}
+            {{- with .Values.linuxserver.umask }}
+            {{- include "common.env" (dict "name" "UMASK" "value" .) | nindent 12 }}
+            {{- end }}
+            {{- with .Values.linuxserver.subfolder }}
+            {{- include "common.env" (dict "name" "SUBFOLDER" "value" .) | nindent 12 }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.config.enabled }}
+            {{- include "common.volumeMount" (dict "name" "config" "mountPath" "/config") | nindent 12 }}
+            {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- if .Values.persistence.config.enabled }}
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.config.existingClaim | default (printf "%s-config" (include "common.fullname" .)) }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
