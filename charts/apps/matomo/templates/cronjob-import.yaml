@@ -1,0 +1,75 @@
+{{- if .Values.cronjob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-log-import
+  labels:
+{{ include "common.labels" . | indent 4 }}
+spec:
+  schedule: "{{ .Values.cronjob.schedule }}"
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+{{- with .Values.cronjob.nodeSelector }}
+          nodeSelector:
+{{ toYaml . | indent 12 }}
+{{- end }}
+{{- with .Values.cronjob.tolerations }}
+          tolerations:
+{{ toYaml . | indent 12 }}
+{{- end }}
+          restartPolicy: OnFailure
+          volumes:
+            - name: ingress-logs
+              {{- if and .Values.cronjob.hostPath.enabled .Values.cronjob.hostPath.path }}
+              hostPath:
+                path: {{ .Values.cronjob.hostPath.path }}
+                {{- with .Values.cronjob.hostPath.type }}
+                type: {{ . }}
+                {{- end }}
+              {{- else }}
+              emptyDir: {}
+              {{- end }}
+          containers:
+            - name: matomo-log-importer
+              image: "{{ .Values.cronjob.image.registry }}/{{ .Values.cronjob.image.repository }}:{{ .Values.cronjob.image.tag }}"
+              imagePullPolicy: {{ .Values.cronjob.image.pullPolicy | default "IfNotPresent" }}
+              resources:
+{{ toYaml .Values.cronjob.resources | indent 14 }}
+              volumeMounts:
+                - name: ingress-logs
+                  mountPath: /logs
+                  readOnly: true
+              env:
+                - name: MATOMO_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.cronjob.matomo.urlSecret }}
+                      key: url
+                - name: MATOMO_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.cronjob.matomo.tokenSecret }}
+                      key: token
+              command: ["/bin/sh","-c"]
+              args:
+                - >
+                  find /logs -type f -name '*ingress-nginx-controller*' -mtime -1 -print0 |
+                  xargs -0 -r zcat -f |
+                  python /opt/bitnami/matomo/misc/log-analytics/import_logs.py
+                  --url="$MATOMO_URL"
+                  --token-auth="$MATOMO_TOKEN"
+                  --enable-http-errors
+                  --enable-http-redirects
+                  --enable-bots
+                  --log-format-name=nginx
+                  --idsite=1
+                  {{- if .Values.importerArgs }}
+                  {{ .Values.importerArgs }}
+                  {{- end }}
+                  -
+{{- end }}
