@@ -1,0 +1,17 @@
+apiVersion: v2
+name: matomo
+description: "Matomo analytics (HTTP app) plus a CronJob to import ingress-nginx logs into Matomo (log analytics)."
+version: 1.0.0
+type: application
+keywords:
+  - matomo
+  - analytics
+  - log-import
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common
+  - name: matomo
+    alias: bitnamiMatomo
+    version: ">=0.0.0"
+    repository: https://charts.bitnami.com/bitnami
