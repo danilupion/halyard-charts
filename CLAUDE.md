@@ -11,7 +11,13 @@ This is a **Helm chart monorepo** designed for GitOps workflows with Argo CD and
 ```
 charts/
 ├── common/              # Library chart with shared Helm template helpers
-└── infra/              # Infrastructure application charts
+├── apps/                # Application workloads
+│   ├── civicrm/
+│   ├── headscale/
+│   └── mysql/
+├── ci-cd/              # CI/CD tools and automation
+│   └── actions-runner-deployment/
+└── infra/              # Infrastructure configuration charts
     ├── letsencrypt-cloudflare-issuer/
     └── metallb-config/
 ```
@@ -36,7 +42,11 @@ Reference helpers in templates with `{{ include "common.labels" . }}`
 ### Chart Organization
 
 - **Location**: All charts live under `charts/` subdirectories
-- **Categories**: `common/` (library), `infra/` (infrastructure apps)
+- **Categories**:
+  - `common/` - Library chart with shared helpers
+  - `apps/` - Application workloads (CiviCRM, MySQL, Headscale, etc.)
+  - `ci-cd/` - CI/CD tools and automation (Actions runners, build tools)
+  - `infra/` - Infrastructure configuration (MetalLB, cert-manager, ingress)
 - **Structure**: Each chart contains:
   - `Chart.yaml` - metadata and dependencies
   - `values.yaml` - default configuration
@@ -87,7 +97,8 @@ done
 cd charts/infra/letsencrypt-cloudflare-issuer
 helm dependency update
 
-# Build dependency packages
+# Build dependency packages for a ci-cd chart
+cd charts/ci-cd/actions-runner-deployment
 helm dependency build
 ```
 
@@ -155,11 +166,17 @@ Triggers after successful CI on main:
 Charts are designed to be consumed from Git by tools like Argo CD:
 
 ```yaml
-# Argo CD Application example
+# Argo CD Application example (infrastructure)
 source:
   repoURL: https://github.com/yourusername/halyard-charts
   targetRevision: letsencrypt-cloudflare-issuer-v1.0.0
   path: charts/infra/letsencrypt-cloudflare-issuer
+
+# Argo CD Application example (ci-cd)
+source:
+  repoURL: https://github.com/yourusername/halyard-charts
+  targetRevision: actions-runner-deployment-v1.0.0
+  path: charts/ci-cd/actions-runner-deployment
 ```
 
 Or via Helmfile:
@@ -168,4 +185,7 @@ Or via Helmfile:
 releases:
   - name: metallb-config
     chart: git+https://github.com/yourusername/halyard-charts@charts/infra/metallb-config?ref=metallb-config-v1.0.0
+
+  - name: actions-runners
+    chart: git+https://github.com/yourusername/halyard-charts@charts/ci-cd/actions-runner-deployment?ref=actions-runner-deployment-v1.0.0
 ```
