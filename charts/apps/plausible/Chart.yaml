@@ -1,0 +1,25 @@
+apiVersion: v2
+name: plausible
+description: Plausible Analytics - privacy-friendly, cookie-free web analytics
+type: application
+version: 1.0.0
+appVersion: v2.1.4
+keywords:
+  - plausible
+  - analytics
+  - privacy
+  - gdpr
+home: https://plausible.io
+sources:
+  - https://github.com/plausible/analytics
+  - https://github.com/plausible/community-edition
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common
+  - name: postgresql
+    version: ">=0.0.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  # ClickHouse is deployed via custom templates (not Bitnami chart)
+  # using official clickhouse/clickhouse-server images

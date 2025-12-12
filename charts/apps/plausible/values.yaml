@@ -1,0 +1,252 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the resources
+fullnameOverride: ""
+
+# Plausible container image
+image:
+  registry: ghcr.io
+  repository: plausible/community-edition
+  tag: v2.1.4
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of Plausible replicas
+replicaCount: 1
+
+# Plausible configuration
+plausible:
+  # Base URL where Plausible will be accessible (required)
+  # Example: https://plausible.example.com
+  baseUrl: ""
+
+  # Secret key base for session encryption (required)
+  # Generate with: openssl rand -base64 48
+  # Can be provided directly or via existingSecret
+  secretKeyBase: ""
+
+  # Use existing secret for sensitive values
+  # Secret should contain keys: SECRET_KEY_BASE, TOTP_VAULT_KEY (optional)
+  existingSecret: ""
+
+  # Registration settings
+  # Options: true, false, invite_only
+  disableRegistration: invite_only
+
+  # Require email verification for new accounts
+  enableEmailVerification: false
+
+  # TOTP vault key for 2FA (derived from SECRET_KEY_BASE by default)
+  # totpVaultKey: ""
+
+  # Extra environment variables
+  extraEnv: []
+    # - name: LOG_LEVEL
+    #   value: "info"
+
+  # Extra environment variables from secrets/configmaps
+  extraEnvFrom: []
+    # - secretRef:
+    #     name: plausible-extra-secrets
+
+# Email configuration (optional but recommended)
+mailer:
+  enabled: false
+  # Adapter: Bamboo.Mua (SMTP), Bamboo.PostmarkAdapter, Bamboo.MailgunAdapter,
+  #          Bamboo.MandrillAdapter, Bamboo.SendGridAdapter
+  adapter: Bamboo.Mua
+  # From address for emails
+  emailFrom: ""
+
+  # SMTP settings (when using Bamboo.Mua adapter)
+  smtp:
+    host: ""
+    port: 587
+    username: ""
+    # Password can be in existingSecret with key: SMTP_USER_PWD
+    password: ""
+    sslEnabled: false
+    # Use existing secret for SMTP password
+    existingSecret: ""
+    existingSecretKey: SMTP_USER_PWD
+
+  # Service-specific API keys (use existingSecret for production)
+  # postmarkApiKey: ""
+  # mailgunApiKey: ""
+  # mandrillApiKey: ""
+  # sendgridApiKey: ""
+
+# Geolocation configuration
+geolocation:
+  # MaxMind license key for automatic GeoLite2 database updates
+  # Get a free license at: https://www.maxmind.com/en/geolite2/signup
+  maxmindLicenseKey: ""
+  # Use existing secret with key: MAXMIND_LICENSE_KEY
+  existingSecret: ""
+  # MaxMind database edition (GeoLite2-City or GeoLite2-Country)
+  edition: GeoLite2-City
+
+# Google Search Console integration (optional)
+google:
+  clientId: ""
+  clientSecret: ""
+  # Use existing secret with keys: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+  existingSecret: ""
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: plausible.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: plausible-tls
+    #   hosts:
+    #     - plausible.example.com
+
+# Resource limits and requests
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  runAsUser: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Liveness probe configuration
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+# Readiness probe configuration
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}
+
+# PostgreSQL subchart configuration
+# Used for user data, sites, and configuration
+postgresql:
+  enabled: true
+  fullnameOverride: plausible-postgresql
+  auth:
+    username: plausible
+    password: ""
+    database: plausible
+    # Use existing secret with keys: password, postgres-password
+    existingSecret: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# External PostgreSQL (when postgresql.enabled=false)
+externalPostgresql:
+  host: ""
+  port: 5432
+  username: plausible
+  database: plausible
+  # Password via existingSecret with key specified in existingSecretKey
+  existingSecret: ""
+  existingSecretKey: password
+  # Or provide directly (not recommended for production)
+  password: ""
+
+# ClickHouse configuration (using official clickhouse/clickhouse-server image)
+# Used for analytics events data
+clickhouse:
+  enabled: true
+  # Official ClickHouse image (receives regular security updates)
+  image:
+    repository: clickhouse/clickhouse-server
+    tag: "24.8-alpine"
+    pullPolicy: IfNotPresent
+  # Database name for Plausible events
+  database: plausible_events
+  # Authentication
+  auth:
+    username: default
+    password: ""
+    # Use existing secret for password
+    existingSecret: ""
+    existingSecretKey: password
+  # Persistence
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: ""
+  # Resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  # Pod security context
+  podSecurityContext: {}
+  # Node selector
+  nodeSelector: {}
+  # Tolerations
+  tolerations: []
+
+# External ClickHouse (when clickhouse.enabled=false)
+externalClickhouse:
+  host: ""
+  port: 8123
+  username: default
+  database: plausible_events
+  # Password via existingSecret
+  existingSecret: ""
+  existingSecretKey: password
+  # Or provide directly (not recommended)
+  password: ""
