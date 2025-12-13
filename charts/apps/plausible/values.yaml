@@ -12,7 +12,7 @@ fullnameOverride: ""
 image:
   registry: ghcr.io
   repository: plausible/community-edition
-  tag: v2.1.4@sha256:4c2553516d09e3c7b1b9c39cca04a04c28c871f525adc8dbb7a2a8a20fed0857
+  tag: v3.1.0@sha256:9703f89e41f7109bda6ae4fc64298474e8bc11f559e791cdda4b04218a92acb1
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
