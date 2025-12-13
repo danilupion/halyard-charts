@@ -1,0 +1,38 @@
+{{- if .Values.ingressPublic.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-public" (include "common.fullname" .)) "root" $) | nindent 2 }}
+  {{- with .Values.ingressPublic.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.ingressPublic.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.ingressPublic.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingressPublic.host | quote }}
+      http:
+        paths:
+          # Tracking script (all variants)
+          - path: /js/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "common.fullname" $ }}
+                port:
+                  name: http
+          # Event ingestion API
+          - path: /api/event
+            pathType: Exact
+            backend:
+              service:
+                name: {{ include "common.fullname" $ }}
+                port:
+                  name: http
+{{- end }}

@@ -106,7 +106,7 @@ service:
   port: 80
   annotations: {}
 
-# Ingress configuration
+# Ingress configuration (private/admin access)
 ingress:
   enabled: false
   className: ""
@@ -119,6 +119,19 @@ ingress:
           pathType: Prefix
   tls: []
     # - secretName: plausible-tls
+    #   hosts:
+    #     - plausible.example.com
+
+# Public ingress for tracking script and event API only
+# Use this when you want admin UI protected but tracking publicly accessible
+ingressPublic:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  host: plausible.example.com
+  tls: []
+    # - secretName: plausible-public-tls
     #   hosts:
     #     - plausible.example.com
 
