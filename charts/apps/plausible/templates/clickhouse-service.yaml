@@ -9,8 +9,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    {{- include "common.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: clickhouse
+    {{- include "common.selectorLabels" (dict "root" . "component" "clickhouse") | nindent 4 }}
   ports:
     - name: http
       port: 8123

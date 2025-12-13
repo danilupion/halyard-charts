@@ -9,8 +9,7 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   selector:
-    {{- include "common.selectorLabels" $ | nindent 4 }}
-    app.kubernetes.io/component: server
+    {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 4 }}
   ports:
     - name: http
       port: {{ .Values.service.port }}

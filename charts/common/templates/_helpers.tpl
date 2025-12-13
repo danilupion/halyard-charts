@@ -35,10 +35,13 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 {{/*
 Selector labels for matching pods to services
+Requires component parameter to ensure proper pod selection in multi-component charts.
+Usage: include "common.selectorLabels" (dict "root" . "component" "server")
 */}}
 {{- define "common.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "common.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/name: {{ include "common.name" .root }}
+app.kubernetes.io/instance: {{ .root.Release.Name }}
+app.kubernetes.io/component: {{ .component | required "component is required for common.selectorLabels" }}
 {{- end -}}
 
 {{/*

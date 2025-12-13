@@ -10,7 +10,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      {{- include "common.selectorLabels" $ | nindent 6 }}
+      {{- include "common.selectorLabels" (dict "root" $ "component" "database") | nindent 6 }}
   endpoints:
     - port: metrics
       interval: {{ .Values.metrics.serviceMonitor.interval }}

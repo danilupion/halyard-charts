@@ -11,13 +11,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "common.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: clickhouse
+      {{- include "common.selectorLabels" (dict "root" . "component" "clickhouse") | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "common.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: clickhouse
+        {{- include "common.selectorLabels" (dict "root" . "component" "clickhouse") | nindent 8 }}
     spec:
       {{- with .Values.clickhouse.podSecurityContext }}
       securityContext:

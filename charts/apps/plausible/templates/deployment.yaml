@@ -6,13 +6,11 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "common.selectorLabels" $ | nindent 6 }}
-      app.kubernetes.io/component: server
+      {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "common.selectorLabels" $ | nindent 8 }}
-        app.kubernetes.io/component: server
+        {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

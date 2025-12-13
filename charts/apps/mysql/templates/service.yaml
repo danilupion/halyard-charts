@@ -10,7 +10,7 @@ spec:
   type: {{ .Values.service.type }}
   clusterIP: None
   selector:
-    {{- include "common.selectorLabels" $ | nindent 4 }}
+    {{- include "common.selectorLabels" (dict "root" $ "component" "database") | nindent 4 }}
   ports:
     - name: mysql
       port: {{ .Values.service.port }}
