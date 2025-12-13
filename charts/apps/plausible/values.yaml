@@ -12,7 +12,7 @@ fullnameOverride: ""
 image:
   registry: ghcr.io
   repository: plausible/community-edition
-  tag: v2.1.4
+  tag: v2.1.4@sha256:4c2553516d09e3c7b1b9c39cca04a04c28c871f525adc8dbb7a2a8a20fed0857
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
@@ -208,7 +208,7 @@ clickhouse:
   # Official ClickHouse image (receives regular security updates)
   image:
     repository: clickhouse/clickhouse-server
-    tag: "24.8-alpine"
+    tag: "24.8-alpine@sha256:b002e56ed5c16e224c312527f6fcba7e77216fec5d7a88a7828f59efc614feb5"
     pullPolicy: IfNotPresent
   # Database name for Plausible events
   database: plausible_events
