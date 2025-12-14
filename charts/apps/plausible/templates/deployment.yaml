@@ -223,9 +223,11 @@ spec:
 
             # Geolocation
             {{- if .Values.geolocation.existingSecret }}
+            {{- include "common.env" (dict "name" "PERSISTENT_CACHE_DIR" "value" "/var/lib/plausible") | nindent 12 }}
             {{- include "common.envSecret" (dict "name" "MAXMIND_LICENSE_KEY" "secret" .Values.geolocation.existingSecret "key" "MAXMIND_LICENSE_KEY") | nindent 12 }}
             {{- include "common.env" (dict "name" "MAXMIND_EDITION" "value" .Values.geolocation.edition) | nindent 12 }}
             {{- else if .Values.geolocation.maxmindLicenseKey }}
+            {{- include "common.env" (dict "name" "PERSISTENT_CACHE_DIR" "value" "/var/lib/plausible") | nindent 12 }}
             {{- include "common.env" (dict "name" "MAXMIND_LICENSE_KEY" "value" .Values.geolocation.maxmindLicenseKey) | nindent 12 }}
             {{- include "common.env" (dict "name" "MAXMIND_EDITION" "value" .Values.geolocation.edition) | nindent 12 }}
             {{- end }}
