@@ -1,0 +1,164 @@
+# Headscale configuration
+headscale:
+  # Public URL where Headscale will be accessible (required)
+  # This is the URL clients will use to connect
+  serverUrl: ""
+
+  # IP prefixes for the tailnet
+  ipPrefixes:
+    v4: "100.64.0.0/10"
+    v6: "fd7a:115c:a1e0::/48"
+
+  # Base domain for MagicDNS (optional)
+  # If set, devices get DNS names like device.baseDomain
+  baseDomain: ""
+
+  # DNS configuration
+  dns:
+    # Enable MagicDNS
+    magicDns: true
+    # Upstream nameservers
+    nameservers:
+      - 1.1.1.1
+      - 8.8.8.8
+
+  # DERP (relay) configuration
+  derp:
+    # Use external DERP servers (Tailscale's public servers)
+    externalEnabled: true
+    # URL to fetch DERP map
+    url: "https://controlplane.tailscale.com/derpmap/default"
+    # Run embedded DERP server (useful if clients can't reach external DERP)
+    embeddedEnabled: false
+    embeddedPort: 3478
+
+  # Database configuration
+  database:
+    # Type: sqlite or postgres
+    type: sqlite
+    # SQLite settings (used when type=sqlite)
+    sqlite:
+      path: /var/lib/headscale/db.sqlite
+    # PostgreSQL settings (used when type=postgres)
+    postgres:
+      host: ""
+      port: 5432
+      name: headscale
+      user: headscale
+      # Password from existing secret
+      existingSecret: ""
+      existingSecretKey: password
+
+  # OIDC configuration (optional)
+  oidc:
+    enabled: false
+    issuer: ""
+    clientId: ""
+    # Client secret from existing secret
+    existingSecret: ""
+    existingSecretKey: client-secret
+
+  # Ephemeral node cleanup timeout
+  ephemeralNodeTimeout: 30m
+
+  # Log level: trace, debug, info, warn, error
+  logLevel: info
+
+# Image configuration
+image:
+  repository: headscale/headscale
+  tag: ""  # Defaults to appVersion
+  pullPolicy: IfNotPresent
+
+# Resource limits
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# Persistence for Headscale data
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+
+# Service configuration
+service:
+  type: ClusterIP
+  ports:
+    http: 8080
+    grpc: 50443
+    metrics: 9090
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []
+
+# Subnet router configuration
+subnetRouter:
+  enabled: false
+
+  # Routes to advertise (e.g., MetalLB private-ip pool)
+  routes: []
+  # - 172.31.240.0/20
+
+  # Pre-auth key for the subnet router
+  # Create with: headscale preauthkeys create --user admin --reusable --expiration 365d
+  authKey: ""
+  # Or use existing secret
+  existingSecret: ""
+  existingSecretKey: auth-key
+
+  # Tailscale client image
+  image:
+    repository: tailscale/tailscale
+    tag: stable
+    pullPolicy: IfNotPresent
+
+  # Resource limits for subnet router
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Common labels to add to all resources
+commonLabels: {}
+
+# Common annotations to add to all resources
+commonAnnotations: {}

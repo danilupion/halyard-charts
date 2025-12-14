@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: headscale
+          {{- include "common.image" (dict "repository" .Values.image.repository "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          args:
+            - serve
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 50443
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+            {{- if .Values.headscale.derp.embeddedEnabled }}
+            - name: stun
+              containerPort: {{ .Values.headscale.derp.embeddedPort }}
+              protocol: UDP
+            {{- end }}
+          env:
+            {{- if and (eq .Values.headscale.database.type "postgres") .Values.headscale.database.postgres.existingSecret }}
+            - name: HEADSCALE_DATABASE_POSTGRES_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.headscale.database.postgres.existingSecret }}
+                  key: {{ .Values.headscale.database.postgres.existingSecretKey }}
+            {{- end }}
+            {{- if .Values.headscale.oidc.enabled }}
+            {{- if .Values.headscale.oidc.existingSecret }}
+            - name: HEADSCALE_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.headscale.oidc.existingSecret }}
+                  key: {{ .Values.headscale.oidc.existingSecretKey }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/headscale
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/headscale
+            - name: run
+              mountPath: /var/run/headscale
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "common.fullname" . }}-config
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "common.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: run
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

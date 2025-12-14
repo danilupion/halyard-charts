@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-config" (include "common.fullname" .)) "root" $) | nindent 2 }}
+data:
+  config.yaml: |
+    server_url: {{ .Values.headscale.serverUrl | required "headscale.serverUrl is required" }}
+    listen_addr: 0.0.0.0:8080
+    metrics_listen_addr: 0.0.0.0:9090
+    grpc_listen_addr: 0.0.0.0:50443
+    grpc_allow_insecure: false
+
+    # Noise encryption (TS2021 protocol)
+    noise:
+      private_key_path: /var/lib/headscale/noise_private.key
+
+    # IP prefixes for the tailnet
+    prefixes:
+      v4: {{ .Values.headscale.ipPrefixes.v4 }}
+      v6: {{ .Values.headscale.ipPrefixes.v6 }}
+      allocation: sequential
+
+    # DERP (relay) configuration
+    derp:
+      server:
+        enabled: {{ .Values.headscale.derp.embeddedEnabled }}
+        {{- if .Values.headscale.derp.embeddedEnabled }}
+        stun_listen_addr: 0.0.0.0:{{ .Values.headscale.derp.embeddedPort }}
+        {{- end }}
+      {{- if .Values.headscale.derp.externalEnabled }}
+      urls:
+        - {{ .Values.headscale.derp.url }}
+      {{- else }}
+      urls: []
+      {{- end }}
+      paths: []
+      auto_update_enabled: true
+      update_frequency: 24h
+
+    # Database configuration
+    database:
+      {{- if eq .Values.headscale.database.type "sqlite" }}
+      type: sqlite
+      sqlite:
+        path: {{ .Values.headscale.database.sqlite.path }}
+        write_ahead_log: true
+      {{- else }}
+      type: postgres
+      postgres:
+        host: {{ .Values.headscale.database.postgres.host }}
+        port: {{ .Values.headscale.database.postgres.port }}
+        name: {{ .Values.headscale.database.postgres.name }}
+        user: {{ .Values.headscale.database.postgres.user }}
+        pass: "" # Set via environment variable
+        max_open_conns: 10
+        max_idle_conns: 10
+        conn_max_idle_time_secs: 3600
+      {{- end }}
+
+    # Disable TLS (handled by ingress)
+    tls_cert_path: ""
+    tls_key_path: ""
+
+    # Ephemeral node settings
+    ephemeral_node_inactivity_timeout: {{ .Values.headscale.ephemeralNodeTimeout }}
+
+    # DNS configuration
+    dns:
+      magic_dns: {{ .Values.headscale.dns.magicDns }}
+      {{- if .Values.headscale.baseDomain }}
+      base_domain: {{ .Values.headscale.baseDomain }}
+      {{- end }}
+      nameservers:
+        global:
+          {{- range .Values.headscale.dns.nameservers }}
+          - {{ . }}
+          {{- end }}
+
+    # Unix socket for CLI
+    unix_socket: /var/run/headscale/headscale.sock
+    unix_socket_permission: "0770"
+
+    # Logging
+    log:
+      level: {{ .Values.headscale.logLevel }}
+      format: text
+
+    # Disable features we don't need
+    logtail:
+      enabled: false
+    randomize_client_port: false

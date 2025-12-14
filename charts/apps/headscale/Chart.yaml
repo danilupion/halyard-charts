@@ -1,0 +1,21 @@
+apiVersion: v2
+name: headscale
+description: Headscale - self-hosted Tailscale control server
+type: application
+version: 1.0.0
+appVersion: 0.27.1
+keywords:
+  - headscale
+  - tailscale
+  - vpn
+  - wireguard
+  - mesh
+home: https://headscale.net
+sources:
+  - https://github.com/juanfont/headscale
+maintainers:
+  - name: danilupion
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common

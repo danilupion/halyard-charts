@@ -1,0 +1,76 @@
+{{- if .Values.subnetRouter.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-subnet-router" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "subnet-router") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "subnet-router") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "common.fullname" . }}-subnet-router
+      containers:
+        - name: tailscale
+          {{- include "common.image" (dict "repository" .Values.subnetRouter.image.repository "tag" .Values.subnetRouter.image.tag "pullPolicy" .Values.subnetRouter.image.pullPolicy "root" $) | nindent 10 }}
+          env:
+            - name: TS_AUTHKEY
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.subnetRouter.existingSecret }}
+                  name: {{ .Values.subnetRouter.existingSecret }}
+                  key: {{ .Values.subnetRouter.existingSecretKey }}
+                  {{- else }}
+                  name: {{ include "common.fullname" . }}-subnet-router
+                  key: auth-key
+                  {{- end }}
+            - name: TS_STATE_DIR
+              value: /var/lib/tailscale
+            - name: TS_SOCKET
+              value: /var/run/tailscale/tailscaled.sock
+            - name: TS_USERSPACE
+              value: "false"
+            - name: TS_ROUTES
+              value: {{ join "," .Values.subnetRouter.routes | quote }}
+            - name: TS_EXTRA_ARGS
+              value: "--login-server={{ .Values.headscale.serverUrl }} --advertise-routes={{ join "," .Values.subnetRouter.routes }} --accept-routes=false"
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
+          {{- with .Values.subnetRouter.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tun
+              mountPath: /dev/net/tun
+            - name: state
+              mountPath: /var/lib/tailscale
+            - name: run
+              mountPath: /var/run/tailscale
+      volumes:
+        - name: tun
+          hostPath:
+            path: /dev/net/tun
+            type: CharDevice
+        - name: state
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
