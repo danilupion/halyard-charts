@@ -67,7 +67,7 @@ headscale:
 # Image configuration
 image:
   repository: headscale/headscale
-  tag: ""  # Defaults to appVersion
+  tag: "@sha256:cd37b30018575fd62f18419138d4e526bcf894e1d4e1aa1b08699cec1891ac23"  # Defaults to appVersion
   pullPolicy: IfNotPresent
 
 # Resource limits
@@ -121,7 +121,7 @@ subnetRouter:
   # Tailscale client image
   image:
     repository: tailscale/tailscale
-    tag: stable
+    tag: stable@sha256:9975353aae933e8fbd1a81226d092a9225b9a0f98b173d365a9d525eca1cc298
     pullPolicy: IfNotPresent
 
   # Resource limits for subnet router
