@@ -21,12 +21,19 @@ Infrastructure components for cluster setup and management:
 - **[letsencrypt-cloudflare-issuer](charts/infra/letsencrypt-cloudflare-issuer)** - Cert-Manager ClusterIssuer backed by Let's Encrypt + Cloudflare DNS-01
 - **[metallb-config](charts/infra/metallb-config)** - Generic MetalLB configuration with multiple pools and L2 advertisements
 
+### Data Charts (`charts/data/`)
+
+Stateful data services for production use:
+
+- **[mysql](charts/data/mysql)** - MySQL standalone database server with Prometheus metrics
+- **[mongodb](charts/data/mongodb)** - MongoDB standalone database server with Prometheus metrics
+- **[postgresql](charts/data/postgresql)** - PostgreSQL standalone database server with Prometheus metrics
+
 ### Application Charts (`charts/apps/`)
 
 Application deployments ready for production use:
 
 - **[civicrm](charts/apps/civicrm)** - CiviCRM Standalone - open source CRM for nonprofits, NGOs and advocacy organizations
-- **[mysql](charts/apps/mysql)** - MySQL standalone database server with Prometheus metrics
 - **[obsidian](charts/apps/obsidian)** - Web-based Obsidian MD desktop experience packaged by LinuxServer.io
 
 ### Library Charts (`charts/common/`)

@@ -1,0 +1,160 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the resources
+# This is useful for creating simpler service names
+# Example: fullnameOverride: "db" creates a service named "db" instead of "release-postgresql"
+fullnameOverride: ""
+
+# PostgreSQL architecture (currently only standalone is supported)
+architecture: standalone
+
+# Authentication configuration
+auth:
+  # Name of existing secret containing the database password
+  # The secret must contain the key specified in existingSecretKey (default: POSTGRES_PASSWORD)
+  existingSecret: ""
+  existingSecretKey: POSTGRES_PASSWORD
+  # Initdb arguments (e.g., auth method hardening)
+  initdbArgs: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+  # Non-sensitive settings
+  username: postgres
+  database: postgres
+
+# PostgreSQL container image configuration
+image:
+  registry: docker.io
+  repository: postgres
+  tag: "18"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Primary PostgreSQL instance configuration
+primary:
+  # Resource requests and limits
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
+  # Persistent storage configuration
+  persistence:
+    enabled: true
+    # Storage class name (leave empty for default)
+    storageClass: ""
+    # Size of persistent volume
+    size: 8Gi
+    # Access modes
+    accessModes:
+      - ReadWriteOnce
+
+  # Update strategy
+  updateStrategy:
+    type: RollingUpdate
+
+  # Custom PostgreSQL configuration (postgresql.conf)
+  configuration: ""
+  # Custom pg_hba.conf rules
+  hbaConfiguration: ""
+
+  # Liveness probe configuration
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+  # Readiness probe configuration
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1
+
+  # Startup probe configuration (for slow-starting instances)
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+
+  # Additional environment variables
+  extraEnv: []
+    # - name: TZ
+    #   value: UTC
+
+  # Pod security context
+  podSecurityContext:
+    fsGroup: 999
+
+  # Container security context
+  securityContext:
+    runAsUser: 999
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+# Service configuration (client service)
+service:
+  type: ClusterIP
+  port: 5432
+  nodePort: null
+  annotations: {}
+  externalTrafficPolicy: ""
+  loadBalancerIP: ""
+
+# Headless service configuration (for StatefulSet)
+headlessService:
+  annotations: {}
+  publishNotReadyAddresses: true
+
+# Metrics exporter configuration (Prometheus postgres_exporter)
+metrics:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: prometheuscommunity/postgres-exporter
+    tag: "v0.16.0"
+    pullPolicy: IfNotPresent
+
+  # Metrics exporter resources
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  # ServiceMonitor configuration for Prometheus Operator
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}

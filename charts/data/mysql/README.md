@@ -37,14 +37,14 @@ kubectl create secret generic mysql-auth \
 ### Basic Installation
 
 ```bash
-helm install my-mysql ./charts/apps/mysql \
+helm install my-mysql ./charts/data/mysql \
   --set auth.existingSecret=mysql-auth
 ```
 
 ### Production Installation
 
 ```bash
-helm install my-mysql ./charts/apps/mysql \
+helm install my-mysql ./charts/data/mysql \
   --set auth.existingSecret=mysql-auth \
   --set primary.persistence.size=50Gi \
   --set primary.persistence.storageClass=fast-ssd \
@@ -179,7 +179,7 @@ By default, resources are named `{release-name}-mysql`. You can customize this:
 
 ```bash
 # Creates service named "db" instead of "my-release-mysql"
-helm install my-release charts/apps/mysql \
+helm install my-release charts/data/mysql \
   --set auth.existingSecret=mysql-auth \
   --set fullnameOverride=db
 ```
@@ -195,7 +195,7 @@ This creates:
 
 ```bash
 # Changes the chart name component only
-helm install my-release charts/apps/mysql \
+helm install my-release charts/data/mysql \
   --set auth.existingSecret=mysql-auth \
   --set nameOverride=database
 ```

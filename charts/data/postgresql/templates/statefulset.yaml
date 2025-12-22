@@ -1,0 +1,208 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  serviceName: {{ include "common.fullname" . }}-headless
+  replicas: 1
+  {{- with .Values.primary.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "database") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "database") | nindent 8 }}
+      annotations:
+        {{- if or .Values.primary.configuration .Values.primary.hbaConfiguration }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.commonAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.primary.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: postgres
+          {{- with .Values.primary.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "common.image" (dict
+              "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository)
+              "tag" .Values.image.tag
+              "pullPolicy" .Values.image.pullPolicy
+              "root" $) | nindent 10 }}
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "auth.existingSecret is required" .Values.auth.existingSecret }}
+                  key: {{ .Values.auth.existingSecretKey }}
+            - name: POSTGRES_USER
+              value: {{ .Values.auth.username | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.auth.database | quote }}
+            {{- if .Values.auth.initdbArgs }}
+            - name: POSTGRES_INITDB_ARGS
+              value: {{ .Values.auth.initdbArgs | quote }}
+            {{- end }}
+            {{- with .Values.primary.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.primary.configuration .Values.primary.hbaConfiguration }}
+          args:
+            {{- if .Values.primary.configuration }}
+            - -c
+            - config_file=/etc/postgresql/custom/postgresql.conf
+            {{- end }}
+            {{- if .Values.primary.hbaConfiguration }}
+            - -c
+            - hba_file=/etc/postgresql/custom/pg_hba.conf
+            {{- end }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql
+            {{- if or .Values.primary.configuration .Values.primary.hbaConfiguration }}
+            - name: config
+              mountPath: /etc/postgresql/custom
+            {{- end }}
+          {{- if .Values.primary.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U {{ .Values.auth.username | quote }} -d {{ .Values.auth.database | quote }}
+            initialDelaySeconds: {{ .Values.primary.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.primary.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.primary.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.primary.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.primary.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.primary.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U {{ .Values.auth.username | quote }} -d {{ .Values.auth.database | quote }}
+            initialDelaySeconds: {{ .Values.primary.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.primary.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.primary.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.primary.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.primary.readinessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.primary.startupProbe.enabled }}
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U {{ .Values.auth.username | quote }} -d {{ .Values.auth.database | quote }}
+            initialDelaySeconds: {{ .Values.primary.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.primary.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.primary.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.primary.startupProbe.failureThreshold }}
+            successThreshold: {{ .Values.primary.startupProbe.successThreshold }}
+          {{- end }}
+          {{- with .Values.primary.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- if .Values.metrics.enabled }}
+        - name: metrics
+          {{- include "common.image" (dict
+              "repository" (printf "%s/%s" .Values.metrics.image.registry .Values.metrics.image.repository)
+              "tag" .Values.metrics.image.tag
+              "pullPolicy" .Values.metrics.image.pullPolicy
+              "root" $) | nindent 10 }}
+          ports:
+            - name: metrics
+              containerPort: 9187
+              protocol: TCP
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "auth.existingSecret is required" .Values.auth.existingSecret }}
+                  key: {{ .Values.auth.existingSecretKey }}
+            - name: DATA_SOURCE_NAME
+              value: {{ printf
+                "user=%s password=$(POSTGRES_PASSWORD) host=localhost port=5432 dbname=%s sslmode=disable"
+                .Values.auth.username
+                .Values.auth.database | quote }}
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 5
+          {{- with .Values.metrics.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      volumes:
+        {{- if or .Values.primary.configuration .Values.primary.hbaConfiguration }}
+        - name: config
+          configMap:
+            name: {{ include "common.fullname" . }}-config
+        {{- end }}
+        {{- if not .Values.primary.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.primary.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "common.labels" $ | nindent 10 }}
+        {{- with .Values.commonAnnotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.primary.persistence.accessModes | nindent 10 }}
+        {{- with .Values.primary.persistence.storageClass }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.primary.persistence.size }}
+  {{- end }}

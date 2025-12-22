@@ -1,0 +1,18 @@
+apiVersion: v2
+name: mongodb
+description: MongoDB standalone database server
+type: application
+version: 1.0.0
+appVersion: "8.0"
+keywords:
+  - mongodb
+  - database
+  - nosql
+home: https://www.mongodb.com
+sources:
+  - https://github.com/mongodb/mongo
+  - https://github.com/percona/mongodb_exporter
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common

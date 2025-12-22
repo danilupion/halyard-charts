@@ -1,0 +1,15 @@
+{{- if or .Values.primary.configuration .Values.primary.hbaConfiguration }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-config" (include "common.fullname" .)) "root" $) | nindent 2 }}
+data:
+  {{- if .Values.primary.configuration }}
+  postgresql.conf: |
+    {{- .Values.primary.configuration | nindent 4 }}
+  {{- end }}
+  {{- if .Values.primary.hbaConfiguration }}
+  pg_hba.conf: |
+    {{- .Values.primary.hbaConfiguration | nindent 4 }}
+  {{- end }}
+{{- end }}
