@@ -33,7 +33,11 @@ jobs:
         run: |
           files=$(git diff --name-only HEAD^ HEAD | grep 'charts/.*/.*/Chart.yaml' || true)
           if [ -n "$files" ]; then
-            echo "files=$files" >> "$GITHUB_OUTPUT"
+            {
+              echo "files<<EOF"
+              echo "$files"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create tags per changed chart
