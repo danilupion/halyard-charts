@@ -1,0 +1,20 @@
+{{- if .Values.ui.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-ui-config" (include "common.fullname" .)) "root" $) | nindent 2 }}
+data:
+  config.yaml: |
+    server:
+      host: 0.0.0.0
+      port: 3000
+      cookie_secret_path: /etc/headplane-secrets/cookie-secret
+      cookie_secure: true
+      cookie_max_age: 86400
+      data_path: /var/lib/headplane
+
+    headscale:
+      url: http://{{ include "common.fullname" . }}:{{ .Values.service.ports.http }}
+      config_path: /etc/headscale/config.yaml
+      config_strict: false
+{{- end }}

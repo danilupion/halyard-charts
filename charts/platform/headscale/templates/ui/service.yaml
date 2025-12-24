@@ -1,0 +1,15 @@
+{{- if .Values.ui.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-ui" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "common.selectorLabels" (dict "root" $ "component" "ui") | nindent 4 }}
+{{- end }}

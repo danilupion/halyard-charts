@@ -1,0 +1,97 @@
+{{- if .Values.ui.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-ui" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "ui") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "ui") | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/ui/configmap.yaml") . | sha256sum }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: headplane
+          {{- include "common.image" (dict "repository" .Values.ui.image.repository "tag" .Values.ui.image.tag "pullPolicy" .Values.ui.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: CONFIG_FILE
+              value: /etc/headplane/config.yaml
+          {{- with .Values.ui.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          startupProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+          {{- with .Values.ui.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/headplane
+              readOnly: true
+            - name: headscale-config
+              mountPath: /etc/headscale
+              readOnly: true
+            - name: cookie-secret
+              mountPath: /etc/headplane-secrets
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/headplane
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "common.fullname" . }}-ui-config
+        - name: headscale-config
+          configMap:
+            name: {{ include "common.fullname" . }}-config
+        - name: cookie-secret
+          secret:
+            {{- if .Values.ui.existingCookieSecret }}
+            secretName: {{ .Values.ui.existingCookieSecret }}
+            {{- else }}
+            secretName: {{ include "common.fullname" . }}-ui-cookie
+            {{- end }}
+        - name: data
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -162,3 +162,45 @@ commonLabels: {}
 
 # Common annotations to add to all resources
 commonAnnotations: {}
+
+# Headplane UI configuration
+ui:
+  enabled: false
+
+  image:
+    repository: ghcr.io/tale/headplane
+    tag: "0.6.1"
+    pullPolicy: IfNotPresent
+
+  # Cookie secret for session encryption (32 characters)
+  # Generate with: openssl rand -hex 16
+  cookieSecret: ""
+  # Or use existing secret
+  existingCookieSecret: ""
+  existingCookieSecretKey: cookie-secret
+
+  # Ingress configuration for UI (separate domain)
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    host: ""
+    tls: []
+
+  # Resource limits (Node.js needs more memory)
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Container security context
+  # Note: readOnlyRootFilesystem must be false - Headplane needs to write temp files
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL

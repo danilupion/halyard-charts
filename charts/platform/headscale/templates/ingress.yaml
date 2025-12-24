@@ -19,6 +19,15 @@ spec:
     - host: {{ .Values.ingress.host | required "ingress.host is required when ingress is enabled" | quote }}
       http:
         paths:
+          {{- if .Values.ui.enabled }}
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "common.fullname" $ }}-ui
+                port:
+                  name: http
+          {{- end }}
           - path: /
             pathType: Prefix
             backend:
