@@ -40,6 +40,15 @@
         },
         "required": ["name"]
       }
+    },
+    "nodeLabels": {
+      "type": "object",
+      "properties": {
+        "removeExcludeFromExternalLoadBalancers": {
+          "type": "boolean",
+          "description": "Remove node.kubernetes.io/exclude-from-external-load-balancers label from all nodes to enable L2 announcements on control-plane nodes"
+        }
+      }
     }
   }
 }

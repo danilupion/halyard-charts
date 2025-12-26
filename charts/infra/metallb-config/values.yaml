@@ -22,3 +22,10 @@ l2Advertisements:
     ipAddressPools: [public]
   - name: private
     ipAddressPools: [private]
+
+# Node label management for L2 mode compatibility
+# Some clusters (especially kubeadm single-node) have labels that prevent L2 announcements
+nodeLabels:
+  # Remove node.kubernetes.io/exclude-from-external-load-balancers label from all nodes
+  # This label prevents MetalLB from announcing IPs via L2 on control-plane nodes
+  removeExcludeFromExternalLoadBalancers: false
