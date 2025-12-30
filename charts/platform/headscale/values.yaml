@@ -64,6 +64,14 @@ headscale:
   # Log level: trace, debug, info, warn, error
   logLevel: info
 
+  # ACL Policy configuration
+  policy:
+    # Enable ACL policy
+    enabled: false
+    # Policy content (HuJSON format)
+    # See: https://headscale.net/stable/ref/acls/
+    content: ""
+
 # Image configuration
 image:
   repository: headscale/headscale
@@ -107,9 +115,14 @@ ingress:
 subnetRouter:
   enabled: false
 
-  # Routes to advertise (e.g., MetalLB private-ip pool)
+  # Routes to advertise (e.g., home network)
   routes: []
-  # - 172.31.240.0/20
+  # - 192.168.3.0/24
+
+  # Tags to advertise (for ACL autoApprovers)
+  # See: https://headscale.net/stable/ref/acls/#autoapprovers
+  tags: []
+  # - tag:subnet-router
 
   # Pre-auth key for the subnet router
   # Create with: headscale preauthkeys create --user admin --reusable --expiration 365d

@@ -32,6 +32,8 @@ spec:
                   {{- end }}
             - name: TS_STATE_DIR
               value: /var/lib/tailscale
+            - name: TS_KUBE_SECRET
+              value: ""
             - name: TS_SOCKET
               value: /var/run/tailscale/tailscaled.sock
             - name: TS_USERSPACE
@@ -39,7 +41,7 @@ spec:
             - name: TS_ROUTES
               value: {{ join "," .Values.subnetRouter.routes | quote }}
             - name: TS_EXTRA_ARGS
-              value: "--login-server={{ .Values.headscale.serverUrl }} --advertise-routes={{ join "," .Values.subnetRouter.routes }} --accept-routes=false"
+              value: "--login-server={{ .Values.headscale.serverUrl }} --advertise-routes={{ join "," .Values.subnetRouter.routes }}{{- if .Values.subnetRouter.tags }} --advertise-tags={{ join "," .Values.subnetRouter.tags }}{{- end }} --accept-routes=false"
           securityContext:
             capabilities:
               add:
