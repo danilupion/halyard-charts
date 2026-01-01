@@ -10,7 +10,7 @@ data:
       port: 3000
       cookie_secret_path: /etc/headplane-secrets/cookie-secret
       cookie_secure: true
-      cookie_max_age: 86400
+      cookie_max_age: {{ .Values.ui.cookieMaxAge | default 2592000 }}
       data_path: /var/lib/headplane
 
     headscale:

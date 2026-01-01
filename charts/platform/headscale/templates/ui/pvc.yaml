@@ -1,0 +1,15 @@
+{{- if and .Values.ui.enabled .Values.ui.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-ui-data" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.ui.persistence.storageClass }}
+  storageClassName: {{ .Values.ui.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.ui.persistence.size | default "100Mi" }}
+{{- end }}

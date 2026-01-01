@@ -81,7 +81,12 @@ spec:
             secretName: {{ include "common.fullname" . }}-ui-cookie
             {{- end }}
         - name: data
+          {{- if .Values.ui.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "common.fullname" . }}-ui-data
+          {{- else }}
           emptyDir: {}
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

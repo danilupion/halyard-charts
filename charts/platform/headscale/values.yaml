@@ -192,6 +192,16 @@ ui:
   existingCookieSecret: ""
   existingCookieSecretKey: cookie-secret
 
+  # Cookie max age in seconds (default: 30 days)
+  # Session expires after this time, requiring API key re-entry
+  cookieMaxAge: 2592000
+
+  # Persistence for Headplane data (API key storage, etc.)
+  persistence:
+    enabled: false
+    storageClass: ""
+    size: 100Mi
+
   # Ingress configuration for UI (separate domain)
   ingress:
     enabled: false
