@@ -41,7 +41,7 @@ spec:
             - name: TS_ROUTES
               value: {{ join "," .Values.subnetRouter.routes | quote }}
             - name: TS_EXTRA_ARGS
-              value: "--login-server={{ .Values.headscale.serverUrl }} --advertise-routes={{ join "," .Values.subnetRouter.routes }}{{- if .Values.subnetRouter.tags }} --advertise-tags={{ join "," .Values.subnetRouter.tags }}{{- end }} --accept-routes=false"
+              value: "--login-server={{ .Values.headscale.serverUrl }}{{- if .Values.subnetRouter.tags }} --advertise-tags={{ join "," .Values.subnetRouter.tags }}{{- end }} --accept-routes=false"
           securityContext:
             capabilities:
               add:
