@@ -1,14 +1,5 @@
 {{- range $i, $issuer := .Values.instances }}
-{{- $cf   := default (dict) $issuer.cloudflare -}}
-{{- $sec  := default (dict) (get $cf "secret") -}}
-{{- $secretName := default "" (get $sec "name") -}}
-{{- $secretKey  := default "" (get $sec "key")  -}}
-{{- $apiRef := default (dict) (get $cf "apiTokenSecretRef") -}}
-{{- $apiRefName := default "" (get $apiRef "name") -}}
-{{- $apiRefKey  := default "" (get $apiRef "key")  -}}
-{{- $resolvedName := default $secretName $apiRefName -}}         {{/* prefer apiTokenSecretRef.name, else secret.name */}}
-{{- $resolvedKey  := default "api-token" (coalesce $apiRefKey $secretKey) -}}  {{/* prefer apiTokenSecretRef.key, else secret.key, else "api-token" */}}
-
+{{- $secretRef := required (printf "instances[%d].cloudflare.secretRef is required" $i) $issuer.cloudflare.secretRef -}}
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -32,8 +23,8 @@ spec:
       - dns01:
           cloudflare:
             apiTokenSecretRef:
-              name: {{ required (printf "instances[%d] requires cloudflare.apiTokenSecretRef.name or cloudflare.secret.name" $i) $resolvedName }}
-              key:  {{ $resolvedKey }}
+              name: {{ required (printf "instances[%d].cloudflare.secretRef.name is required" $i) $secretRef.name }}
+              key: {{ default "api-token" $secretRef.key }}
 {{- $solvers := default (list) $issuer.solvers -}}
 {{- if gt (len $solvers) 0 -}}
   {{- $s := index $solvers 0 -}}
