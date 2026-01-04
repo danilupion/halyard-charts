@@ -21,6 +21,11 @@ imagePullSecrets: []
 # Number of replicas (should be 1 for qBittorrent)
 replicaCount: 1
 
+# Deployment strategy - Recreate ensures old pod dies before new starts
+# Prevents config lockfile conflicts during updates
+strategy:
+  type: Recreate
+
 # LinuxServer environment configuration
 linuxserver:
   puid: 1000

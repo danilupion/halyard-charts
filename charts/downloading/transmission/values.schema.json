@@ -50,9 +50,9 @@
     },
     "replicaCount": {
       "type": "integer",
-      "minimum": 1,
+      "minimum": 0,
       "maximum": 1,
-      "description": "Number of replicas (should be 1 for Transmission)"
+      "description": "Number of replicas (0 for maintenance, 1 for normal operation)"
     },
     "linuxserver": {
       "type": "object",

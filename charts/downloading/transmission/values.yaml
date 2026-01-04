@@ -106,20 +106,18 @@ podSecurityContext:
 # Container security context
 securityContext: {}
 
-# Liveness probe
+# Liveness probe - uses TCP since HTTP requires auth
 livenessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: http
   initialDelaySeconds: 30
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 5
 
-# Readiness probe
+# Readiness probe - uses TCP since HTTP requires auth
 readinessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: http
   initialDelaySeconds: 10
   periodSeconds: 10
