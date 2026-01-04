@@ -1,0 +1,136 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override chart name
+nameOverride: ""
+
+# Override full resource name
+fullnameOverride: ""
+
+# Container image configuration
+image:
+  registry: lscr.io
+  repository: linuxserver/transmission
+  tag: "4.0.6"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of replicas (should be 1 for Transmission)
+replicaCount: 1
+
+# LinuxServer environment configuration
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "Europe/Madrid"
+
+# Transmission-specific configuration
+transmission:
+  # Web UI port (internal)
+  webUiPort: 9091
+  # Torrenting port
+  torrentPort: 51413
+  # Alternative web UI path (e.g., /config/flood-for-transmission)
+  webHome: ""
+  # WebUI username (optional)
+  user: ""
+  # WebUI password from existing secret
+  existingSecret: ""
+  existingSecretPasswordKey: "password"
+
+# Web UI Service configuration
+service:
+  type: ClusterIP
+  port: 9091
+  annotations: {}
+
+# NodePort service for torrent traffic
+torrentService:
+  enabled: true
+  type: NodePort
+  port: 51413
+  nodePort: 31413
+  # UDP support (recommended for torrenting)
+  udpEnabled: true
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []
+
+# Application config storage (always mounted at /config)
+persistence:
+  enabled: true
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  existingClaim: ""
+
+# Flexible storage volumes - mounted under configurable paths
+# Transmission often needs multiple download directories for different arr apps
+# Example:
+#   storage:
+#     downloads:
+#       existingClaim: disk1-downloads
+#       mountPath: /downloads
+#       subPath: transmission
+#     sonarr:
+#       existingClaim: disk2-downloads
+#       mountPath: /downloads/complete/sonarr
+#       subPath: transmission/complete/sonarr
+storage: {}
+
+# Init container for directory permissions (optional)
+initContainer:
+  enabled: false
+  image:
+    repository: busybox
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Resource limits and requests
+resources: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Container security context
+securityContext: {}
+
+# Liveness probe
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+# Readiness probe
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}

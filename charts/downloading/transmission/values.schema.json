@@ -1,0 +1,338 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "commonLabels": {
+      "type": "object",
+      "description": "Labels to apply to all resources"
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "description": "Annotations to apply to all resources"
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the name of the chart"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the full name of resources"
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": {
+          "type": "string",
+          "description": "Container image registry"
+        },
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      },
+      "required": ["registry", "repository", "tag", "pullPolicy"]
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Image pull secrets for private registries"
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1,
+      "description": "Number of replicas (should be 1 for Transmission)"
+    },
+    "linuxserver": {
+      "type": "object",
+      "properties": {
+        "puid": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "User ID for file permissions"
+        },
+        "pgid": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Group ID for file permissions"
+        },
+        "tz": {
+          "type": "string",
+          "description": "Timezone (e.g., Europe/Madrid)"
+        }
+      },
+      "required": ["puid", "pgid", "tz"]
+    },
+    "transmission": {
+      "type": "object",
+      "properties": {
+        "webUiPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Web UI port (internal)"
+        },
+        "torrentPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Torrenting port"
+        },
+        "webHome": {
+          "type": "string",
+          "description": "Alternative web UI path"
+        },
+        "user": {
+          "type": "string",
+          "description": "WebUI username"
+        },
+        "existingSecret": {
+          "type": "string",
+          "description": "Existing secret name for password"
+        },
+        "existingSecretPasswordKey": {
+          "type": "string",
+          "description": "Key in secret for password"
+        }
+      },
+      "required": ["webUiPort", "torrentPort"]
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Service type"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Service port"
+        },
+        "annotations": {
+          "type": "object"
+        }
+      },
+      "required": ["type", "port"]
+    },
+    "torrentService": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable NodePort service for torrent traffic"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["NodePort", "LoadBalancer"],
+          "description": "Service type for torrent traffic"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Torrent service port"
+        },
+        "nodePort": {
+          "type": "integer",
+          "minimum": 30000,
+          "maximum": 32767,
+          "description": "NodePort for torrent traffic"
+        },
+        "udpEnabled": {
+          "type": "boolean",
+          "description": "Enable UDP for torrent traffic"
+        },
+        "annotations": {
+          "type": "object"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ingress"
+        },
+        "className": {
+          "type": "string",
+          "description": "Ingress class name"
+        },
+        "annotations": {
+          "type": "object"
+        },
+        "host": {
+          "type": "string",
+          "description": "Ingress hostname"
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "secretName": {
+                "type": "string"
+              },
+              "hosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": ["enabled"]
+    },
+    "persistence": {
+      "type": "object",
+      "description": "Config storage (mounted at /config)",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable config persistence"
+        },
+        "storageClassName": {
+          "type": "string",
+          "description": "Storage class for config PVC"
+        },
+        "accessModes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany", "ReadWriteOncePod"]
+          }
+        },
+        "size": {
+          "type": "string",
+          "pattern": "^[0-9]+(Ei|Pi|Ti|Gi|Mi|Ki)?$",
+          "description": "Config storage size"
+        },
+        "existingClaim": {
+          "type": "string",
+          "description": "Use existing PVC for config"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "storage": {
+      "type": "object",
+      "description": "Flexible storage volumes for downloads",
+      "additionalProperties": {
+        "$ref": "#/$defs/storageVolume"
+      }
+    },
+    "initContainer": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable init container for permissions"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"]
+            }
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "description": "Resource limits and requests"
+    },
+    "podSecurityContext": {
+      "type": "object",
+      "description": "Pod security context"
+    },
+    "securityContext": {
+      "type": "object",
+      "description": "Container security context"
+    },
+    "livenessProbe": {
+      "type": "object",
+      "description": "Liveness probe configuration"
+    },
+    "readinessProbe": {
+      "type": "object",
+      "description": "Readiness probe configuration"
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Node selector for pod assignment"
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Tolerations for pod assignment"
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity for pod assignment"
+    }
+  },
+  "required": ["image", "linuxserver", "transmission", "service", "persistence"],
+  "$defs": {
+    "storageVolume": {
+      "type": "object",
+      "description": "Storage volume configuration",
+      "properties": {
+        "existingClaim": {
+          "type": "string",
+          "description": "Use existing PVC (recommended for shared storage)"
+        },
+        "storageClassName": {
+          "type": "string",
+          "description": "Storage class for new PVC"
+        },
+        "accessModes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany", "ReadWriteOncePod"]
+          }
+        },
+        "size": {
+          "type": "string",
+          "pattern": "^[0-9]+(Ei|Pi|Ti|Gi|Mi|Ki)?$",
+          "description": "Storage size"
+        },
+        "mountPath": {
+          "type": "string",
+          "description": "Mount path (defaults to /storage/{name})"
+        },
+        "subPath": {
+          "type": "string",
+          "description": "SubPath within the volume for shared PVCs"
+        }
+      }
+    }
+  }
+}

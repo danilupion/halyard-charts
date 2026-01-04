@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainer.enabled }}
+      initContainers:
+        - name: init-permissions
+          image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+          imagePullPolicy: {{ .Values.initContainer.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              chown {{ .Values.linuxserver.puid }}:{{ .Values.linuxserver.pgid }} /config
+              chmod 755 /config
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      {{- end }}
+      containers:
+        - name: transmission
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository) "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.transmission.webUiPort }}
+              protocol: TCP
+            - name: torrent-tcp
+              containerPort: {{ .Values.transmission.torrentPort }}
+              protocol: TCP
+            {{- if .Values.torrentService.udpEnabled }}
+            - name: torrent-udp
+              containerPort: {{ .Values.transmission.torrentPort }}
+              protocol: UDP
+            {{- end }}
+          env:
+            {{- include "common.env" (dict "name" "PUID" "value" (.Values.linuxserver.puid | toString)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "PGID" "value" (.Values.linuxserver.pgid | toString)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "TZ" "value" .Values.linuxserver.tz) | nindent 12 }}
+            {{- if .Values.transmission.webHome }}
+            {{- include "common.env" (dict "name" "TRANSMISSION_WEB_HOME" "value" .Values.transmission.webHome) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.transmission.user }}
+            {{- include "common.env" (dict "name" "USER" "value" .Values.transmission.user) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.transmission.existingSecret }}
+            - name: PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.transmission.existingSecret }}
+                  key: {{ .Values.transmission.existingSecretPasswordKey }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.enabled }}
+            - name: config
+              mountPath: /config
+            {{- end }}
+            {{- range $name, $volume := .Values.storage }}
+            - name: {{ $name }}
+              mountPath: {{ $volume.mountPath | default (printf "/storage/%s" $name) }}
+              {{- if $volume.subPath }}
+              subPath: {{ $volume.subPath }}
+              {{- end }}
+            {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        {{- if .Values.persistence.enabled }}
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (printf "%s-config" (include "common.fullname" .)) }}
+        {{- end }}
+        {{- range $name, $volume := .Values.storage }}
+        - name: {{ $name }}
+          persistentVolumeClaim:
+            claimName: {{ $volume.existingClaim | default (printf "%s-%s" (include "common.fullname" $) $name) }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
