@@ -1,0 +1,11 @@
+apiVersion: v2
+name: prowlarr
+description: Prowlarr - Indexer manager/proxy for PVR applications
+type: application
+version: 0.1.0
+appVersion: "2.3.0"
+
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: "file://../../common"

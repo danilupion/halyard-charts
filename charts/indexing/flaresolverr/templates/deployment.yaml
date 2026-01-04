@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: flaresolverr
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository) "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.flaresolverr.port }}
+              protocol: TCP
+          env:
+            {{- include "common.env" (dict "name" "TZ" "value" .Values.tz) | nindent 12 }}
+            {{- include "common.env" (dict "name" "LOG_LEVEL" "value" .Values.flaresolverr.logLevel) | nindent 12 }}
+            {{- if .Values.flaresolverr.logHtml }}
+            {{- include "common.env" (dict "name" "LOG_HTML" "value" "true") | nindent 12 }}
+            {{- end }}
+            {{- if .Values.flaresolverr.captchaSolver }}
+            {{- include "common.env" (dict "name" "CAPTCHA_SOLVER" "value" .Values.flaresolverr.captchaSolver) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.socks5.enabled }}
+            - name: CHROME_ARGS
+              value: --proxy-server="socks5://localhost:{{ .Values.socks5.port }}" --host-resolver-rules="MAP * ~NOTFOUND , EXCLUDE localhost" --dns-prefetch-disable
+            {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- if .Values.socks5.enabled }}
+        - name: socks5-sidecar
+          image: alpine:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache openssh-client && \
+              mkdir -p /root/.ssh && \
+              cp /ssh-keys/{{ .Values.socks5.existingSecretKey }} /root/.ssh/id_rsa && \
+              chmod 600 /root/.ssh/id_rsa && \
+              ssh -o StrictHostKeyChecking=no \
+                  -o ServerAliveInterval=60 \
+                  -N -D 0.0.0.0:{{ .Values.socks5.port }} \
+                  {{ .Values.socks5.user }}@{{ .Values.socks5.host }}
+          volumeMounts:
+            - name: ssh-keys
+              mountPath: /ssh-keys
+              readOnly: true
+        {{- end }}
+      {{- if .Values.socks5.enabled }}
+      volumes:
+        - name: ssh-keys
+          secret:
+            secretName: {{ .Values.socks5.existingSecret }}
+            items:
+              - key: {{ .Values.socks5.existingSecretKey }}
+                path: {{ .Values.socks5.existingSecretKey }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
