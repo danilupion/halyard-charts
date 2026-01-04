@@ -1,0 +1,31 @@
+{{- if .Values.torrentService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-torrent" (include "common.fullname" .)) "root" $) | nindent 2 }}
+  {{- with .Values.torrentService.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.torrentService.type }}
+  selector:
+    {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 4 }}
+  ports:
+    - name: torrent-tcp
+      port: {{ .Values.torrentService.port }}
+      targetPort: torrent-tcp
+      protocol: TCP
+      {{- if eq .Values.torrentService.type "NodePort" }}
+      nodePort: {{ .Values.torrentService.nodePort }}
+      {{- end }}
+    {{- if .Values.torrentService.udpEnabled }}
+    - name: torrent-udp
+      port: {{ .Values.torrentService.port }}
+      targetPort: torrent-udp
+      protocol: UDP
+      {{- if eq .Values.torrentService.type "NodePort" }}
+      nodePort: {{ .Values.torrentService.nodePort }}
+      {{- end }}
+    {{- end }}
+{{- end }}
