@@ -1,0 +1,108 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override chart name
+nameOverride: ""
+
+# Override full resource name
+fullnameOverride: ""
+
+# Container image configuration
+image:
+  registry: ghcr.io
+  repository: flaresolverr/flaresolverr
+  tag: "v3.3.21"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of replicas
+replicaCount: 1
+
+# Timezone
+tz: "Europe/Madrid"
+
+# FlareSolverr configuration
+flaresolverr:
+  # Web port (internal)
+  port: 8191
+  # Log level (info, debug, warning, error)
+  logLevel: "info"
+  # Log HTML content (useful for debugging)
+  logHtml: false
+  # Anthropic/Capsolver API key (optional, for solving captchas)
+  captchaSolver: ""
+
+# SOCKS5 proxy sidecar (SSH tunnel)
+socks5:
+  enabled: false
+  # SSH user
+  user: ""
+  # SSH host
+  host: ""
+  # SOCKS5 port (local)
+  port: 1080
+  # Existing secret containing SSH key
+  existingSecret: ""
+  # Key in secret for SSH private key
+  existingSecretKey: "id_rsa"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8191
+  annotations: {}
+
+# Ingress configuration (usually not needed - internal service)
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 1000m
+  #   memory: 1Gi
+  # requests:
+  #   cpu: 100m
+  #   memory: 256Mi
+
+# Pod security context
+podSecurityContext: {}
+
+# Container security context
+securityContext: {}
+
+# Liveness probe
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+# Readiness probe
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
