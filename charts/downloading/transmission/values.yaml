@@ -12,7 +12,7 @@ fullnameOverride: ""
 image:
   registry: lscr.io
   repository: linuxserver/transmission
-  tag: "4.0.6"
+  tag: "4.0.6@sha256:456204f6cd5e5a23a46bdae14c7f39238c3b8ec5bea750bba9d908e13c4e507b"
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
@@ -93,7 +93,7 @@ initContainer:
   enabled: false
   image:
     repository: busybox
-    tag: latest
+    tag: latest@sha256:d80cd694d3e9467884fcb94b8ca1e20437d8a501096cdf367a5a1918a34fc2fd
     pullPolicy: IfNotPresent
 
 # Resource limits and requests
