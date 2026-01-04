@@ -1,0 +1,11 @@
+apiVersion: v2
+name: jackett
+description: Jackett - API Support for your favorite torrent trackers
+type: application
+version: 0.1.0
+appVersion: "0.24.590"
+
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: "file://../../common"
