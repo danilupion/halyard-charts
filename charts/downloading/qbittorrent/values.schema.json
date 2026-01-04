@@ -222,30 +222,6 @@
         "$ref": "#/$defs/storageVolume"
       }
     },
-    "initContainer": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable init container for permissions"
-        },
-        "image": {
-          "type": "object",
-          "properties": {
-            "repository": {
-              "type": "string"
-            },
-            "tag": {
-              "type": "string"
-            },
-            "pullPolicy": {
-              "type": "string",
-              "enum": ["Always", "IfNotPresent", "Never"]
-            }
-          }
-        }
-      }
-    },
     "resources": {
       "type": "object",
       "description": "Resource limits and requests"
