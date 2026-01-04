@@ -1,0 +1,76 @@
+# Default values for prowlarr
+# This is a YAML-formatted file.
+
+# Image configuration
+image:
+  repository: lscr.io/linuxserver/prowlarr
+  tag: 2.3.0@sha256:67a8aaedcfd6989f3030b937a6a07007310b1dfc7ee8df16d2cbfa48d1c1158c
+  pullPolicy: IfNotPresent
+
+# LinuxServer container settings
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "UTC"
+
+# Prowlarr-specific configuration
+prowlarr:
+  port: 9696
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 9696
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Persistence for config
+persistence:
+  config:
+    enabled: true
+    type: hostPath
+    hostPath: ""
+    mountPath: /config
+
+# SOCKS5 proxy sidecar for geo-bypass
+socks5:
+  enabled: false
+  user: ""
+  host: ""
+  port: 1080
+  existingSecret: ""
+  existingSecretKey: "id_rsa"
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate for single-replica stateful apps
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+  httpGet:
+    path: /ping
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  httpGet:
+    path: /ping
+    port: http
