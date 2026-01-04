@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jackett.name" . }}
+  labels:
+    {{- include "jackett.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "jackett.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "jackett.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: jackett
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.jackett.port }}
+              protocol: TCP
+          env:
+            - name: PUID
+              value: "{{ .Values.linuxserver.puid }}"
+            - name: PGID
+              value: "{{ .Values.linuxserver.pgid }}"
+            - name: TZ
+              value: {{ .Values.linuxserver.tz | quote }}
+            {{- if .Values.jackett.autoUpdate }}
+            - name: AUTO_UPDATE
+              value: "true"
+            {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            {{- if .Values.livenessProbe.tcpSocket }}
+            tcpSocket:
+              port: {{ .Values.livenessProbe.tcpSocket.port }}
+            {{- else if .Values.livenessProbe.httpGet }}
+            httpGet:
+              path: {{ .Values.livenessProbe.httpGet.path }}
+              port: {{ .Values.livenessProbe.httpGet.port }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            {{- if .Values.readinessProbe.tcpSocket }}
+            tcpSocket:
+              port: {{ .Values.readinessProbe.tcpSocket.port }}
+            {{- else if .Values.readinessProbe.httpGet }}
+            httpGet:
+              path: {{ .Values.readinessProbe.httpGet.path }}
+              port: {{ .Values.readinessProbe.httpGet.port }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.config.enabled }}
+            - name: config
+              mountPath: {{ .Values.persistence.config.mountPath }}
+            {{- end }}
+        {{- if .Values.socks5.enabled }}
+        - name: socks5-sidecar
+          image: alpine:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache openssh-client && \
+              mkdir -p /root/.ssh && \
+              cp /ssh-keys/{{ .Values.socks5.existingSecretKey }} /root/.ssh/id_rsa && \
+              chmod 600 /root/.ssh/id_rsa && \
+              ssh -o StrictHostKeyChecking=no \
+                  -o ServerAliveInterval=60 \
+                  -N -D 0.0.0.0:{{ .Values.socks5.port }} \
+                  {{ .Values.socks5.user }}@{{ .Values.socks5.host }}
+          volumeMounts:
+            - name: ssh-keys
+              mountPath: /ssh-keys
+              readOnly: true
+        {{- end }}
+      volumes:
+        {{- if .Values.persistence.config.enabled }}
+        - name: config
+          {{- if eq .Values.persistence.config.type "hostPath" }}
+          hostPath:
+            path: {{ required "persistence.config.hostPath is required" .Values.persistence.config.hostPath }}
+            type: DirectoryOrCreate
+          {{- else if eq .Values.persistence.config.type "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.config.existingClaim | default (printf "%s-config" (include "jackett.name" .)) }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.socks5.enabled }}
+        - name: ssh-keys
+          secret:
+            secretName: {{ .Values.socks5.existingSecret }}
+            items:
+              - key: {{ .Values.socks5.existingSecretKey }}
+                path: {{ .Values.socks5.existingSecretKey }}
+        {{- end }}

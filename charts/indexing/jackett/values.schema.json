@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      },
+      "required": ["repository", "tag", "pullPolicy"]
+    },
+    "linuxserver": {
+      "type": "object",
+      "properties": {
+        "puid": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "User ID for file permissions"
+        },
+        "pgid": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Group ID for file permissions"
+        },
+        "tz": {
+          "type": "string",
+          "description": "Timezone (e.g., Europe/Madrid)"
+        }
+      },
+      "required": ["puid", "pgid", "tz"]
+    },
+    "jackett": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Jackett port"
+        },
+        "autoUpdate": {
+          "type": "boolean",
+          "description": "Enable auto-update"
+        }
+      },
+      "required": ["port"]
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Service type"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Service port"
+        }
+      },
+      "required": ["type", "port"]
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ingress"
+        },
+        "className": {
+          "type": "string",
+          "description": "Ingress class name"
+        },
+        "annotations": {
+          "type": "object"
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": ["enabled"]
+    },
+    "persistence": {
+      "type": "object",
+      "description": "Config persistence",
+      "properties": {
+        "config": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable config persistence"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["hostPath", "pvc"],
+              "description": "Persistence type"
+            },
+            "hostPath": {
+              "type": "string",
+              "description": "Host path for config storage"
+            },
+            "mountPath": {
+              "type": "string",
+              "description": "Mount path inside container"
+            },
+            "existingClaim": {
+              "type": "string",
+              "description": "Existing PVC name"
+            },
+            "storageClassName": {
+              "type": "string",
+              "description": "Storage class for PVC"
+            },
+            "accessModes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
+              },
+              "description": "PVC access modes"
+            },
+            "size": {
+              "type": "string",
+              "pattern": "^[0-9]+(Ei|Pi|Ti|Gi|Mi|Ki)?$",
+              "description": "PVC size"
+            }
+          },
+          "required": ["enabled", "type"]
+        }
+      }
+    },
+    "socks5": {
+      "type": "object",
+      "description": "SOCKS5 proxy sidecar for geo-bypass",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable SOCKS5 sidecar"
+        },
+        "user": {
+          "type": "string",
+          "description": "SSH user for tunnel"
+        },
+        "host": {
+          "type": "string",
+          "description": "SSH host for tunnel"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Local SOCKS5 port"
+        },
+        "existingSecret": {
+          "type": "string",
+          "description": "Existing secret with SSH key"
+        },
+        "existingSecretKey": {
+          "type": "string",
+          "description": "Key in secret containing SSH private key"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "resources": {
+      "type": "object",
+      "description": "Resource limits and requests"
+    },
+    "strategy": {
+      "type": "object",
+      "description": "Deployment strategy"
+    },
+    "livenessProbe": {
+      "type": "object",
+      "description": "Liveness probe configuration"
+    },
+    "readinessProbe": {
+      "type": "object",
+      "description": "Readiness probe configuration"
+    }
+  },
+  "required": ["image", "linuxserver", "jackett", "service", "persistence"]
+}

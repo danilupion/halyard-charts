@@ -1,0 +1,19 @@
+{{- if and .Values.persistence.config.enabled (eq .Values.persistence.config.type "pvc") (not .Values.persistence.config.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "jackett.name" . }}-config
+  labels:
+    {{- include "jackett.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.persistence.config.accessModes }}
+  accessModes:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.persistence.config.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.config.size | default "1Gi" }}
+{{- end }}
