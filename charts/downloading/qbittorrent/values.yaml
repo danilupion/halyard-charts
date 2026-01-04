@@ -12,7 +12,7 @@ fullnameOverride: ""
 image:
   registry: lscr.io
   repository: linuxserver/qbittorrent
-  tag: "5.0.4"
+  tag: "5.0.4@sha256:46f4e80af074fa2ffc0214fe0b7d59384748cfb34685892a53b7a3c87407a333"
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
@@ -102,7 +102,7 @@ initContainer:
   enabled: false
   image:
     repository: busybox
-    tag: latest
+    tag: latest@sha256:d80cd694d3e9467884fcb94b8ca1e20437d8a501096cdf367a5a1918a34fc2fd
     pullPolicy: IfNotPresent
 
 # Resource limits and requests
