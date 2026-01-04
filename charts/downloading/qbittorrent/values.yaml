@@ -1,0 +1,153 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override chart name
+nameOverride: ""
+
+# Override full resource name
+fullnameOverride: ""
+
+# Container image configuration
+image:
+  registry: lscr.io
+  repository: linuxserver/qbittorrent
+  tag: "5.0.4"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of replicas (should be 1 for qBittorrent)
+replicaCount: 1
+
+# LinuxServer environment configuration
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "Europe/Madrid"
+
+# qBittorrent-specific configuration
+qbittorrent:
+  # Web UI port (internal)
+  webUiPort: 8080
+  # Torrenting port
+  torrentPort: 6881
+
+# Web UI Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+# NodePort service for torrent traffic
+torrentService:
+  enabled: true
+  type: NodePort
+  port: 6881
+  nodePort: 31415
+  # UDP support (recommended for torrenting)
+  udpEnabled: true
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []
+
+# Application config storage (always mounted at /config)
+persistence:
+  enabled: true
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  existingClaim: ""
+
+# Flexible storage volumes - mounted under /storage/ for hardlink support
+# Each entry creates a volume and volumeMount
+# Example for qbittorrent:
+#   storage:
+#     downloads:
+#       existingClaim: media-downloads-disk4
+#       subPath: qbittorrent
+#
+# Example for radarr (arr apps need downloads + movies on same mount for hardlinks):
+#   storage:
+#     downloads:
+#       existingClaim: media-disk1
+#       subPath: downloads
+#     movies:
+#       existingClaim: media-disk1
+#       subPath: movies
+storage: {}
+  # downloads:
+  #   # Use existing PVC (recommended for shared storage)
+  #   existingClaim: ""
+  #   # Or create a new PVC
+  #   storageClassName: ""
+  #   accessModes:
+  #     - ReadWriteMany
+  #   size: 100Gi
+  #   # Mount path (defaults to /storage/{name})
+  #   mountPath: ""
+  #   # SubPath within the volume (for shared PVCs)
+  #   subPath: ""
+
+# Init container for directory permissions (optional)
+initContainer:
+  enabled: false
+  image:
+    repository: busybox
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 1000m
+  #   memory: 1Gi
+  # requests:
+  #   cpu: 100m
+  #   memory: 256Mi
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Container security context
+securityContext: {}
+  # Note: LinuxServer images typically run as root internally
+  # but use PUID/PGID for file permissions
+
+# Liveness probe
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+# Readiness probe
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
