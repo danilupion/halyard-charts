@@ -3,7 +3,7 @@
 # Image configuration
 image:
   repository: lscr.io/linuxserver/jackett
-  tag: "0.24.590"
+  tag: "0.24.590@sha256:06eb91e8ecfa3aa2bdb323041257ac6360b6d20e5b68d66050bbbcb5be3c93e7"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
