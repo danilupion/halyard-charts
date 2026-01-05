@@ -8,7 +8,7 @@ fullnameOverride: ""
 # Image configuration
 image:
   repository: lscr.io/linuxserver/lidarr
-  tag: "2.8.2"
+  tag: "2.14.5@sha256:5e1235d00b5d1c1f60ca0d472e554a6611aef41aa7b5b6d88260214bf4809af0"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
