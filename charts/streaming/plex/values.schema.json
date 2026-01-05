@@ -1,0 +1,190 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the chart name"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the full name"
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      }
+    },
+    "linuxserver": {
+      "type": "object",
+      "properties": {
+        "puid": {
+          "type": "integer",
+          "description": "User ID for the container process"
+        },
+        "pgid": {
+          "type": "integer",
+          "description": "Group ID for the container process"
+        },
+        "tz": {
+          "type": "string",
+          "description": "Timezone for the container"
+        }
+      }
+    },
+    "plex": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "description": "Plex web interface port",
+          "default": 32400
+        },
+        "claim": {
+          "type": "string",
+          "description": "Plex claim token for initial setup"
+        },
+        "version": {
+          "type": "string",
+          "description": "Plex version (docker, latest, or specific)"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Kubernetes service type"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Service port"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ingress"
+        },
+        "className": {
+          "type": "string",
+          "description": "Ingress class name"
+        },
+        "annotations": {
+          "type": "object",
+          "description": "Ingress annotations"
+        },
+        "hosts": {
+          "type": "array",
+          "description": "Ingress hosts configuration"
+        },
+        "tls": {
+          "type": "array",
+          "description": "Ingress TLS configuration"
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable config persistence"
+            },
+            "existingClaim": {
+              "type": "string",
+              "description": "Use existing PVC for config"
+            },
+            "mountPath": {
+              "type": "string",
+              "description": "Mount path for config"
+            }
+          }
+        }
+      }
+    },
+    "libraries": {
+      "type": "array",
+      "description": "List of media library mounts",
+      "items": {
+        "type": "object",
+        "required": ["name", "mountPath"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Volume name (must be unique)"
+          },
+          "mountPath": {
+            "type": "string",
+            "description": "Mount path inside container"
+          },
+          "hostPath": {
+            "type": "string",
+            "description": "Host path to mount"
+          },
+          "existingClaim": {
+            "type": "string",
+            "description": "Existing PVC name to mount"
+          },
+          "subPath": {
+            "type": "string",
+            "description": "SubPath within the volume"
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "description": "Container resource limits and requests"
+    },
+    "strategy": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["Recreate", "RollingUpdate"],
+          "description": "Deployment strategy"
+        }
+      }
+    },
+    "livenessProbe": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable liveness probe"
+        }
+      }
+    },
+    "readinessProbe": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable readiness probe"
+        }
+      }
+    }
+  }
+}

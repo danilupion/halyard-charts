@@ -1,0 +1,88 @@
+# Default values for plex
+# Plex Media Server - stream your media anywhere
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: lscr.io/linuxserver/plex
+  tag: "1.42.2"
+  pullPolicy: IfNotPresent
+
+# LinuxServer container settings
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "UTC"
+
+# Plex-specific configuration
+plex:
+  port: 32400
+  # Plex claim token for initial server setup
+  # Get from https://plex.tv/claim (expires in 4 minutes)
+  # Only needed for initial setup, can be empty after server is claimed
+  claim: ""
+  # Version: docker, latest, or specific version
+  version: "docker"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 32400
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /config
+
+# Media library mounts - flexible list of volumes
+# Each entry can use either hostPath or existingClaim
+#
+# Example:
+#   libraries:
+#     - name: movies
+#       mountPath: /movies
+#       existingClaim: disk1-storage
+#       subPath: movies/collection
+#     - name: tv
+#       mountPath: /tv
+#       hostPath: /storage/disk2/tv
+libraries: []
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate recommended for media servers
+strategy:
+  type: Recreate
+
+# Probes - disabled by default as Plex can be slow to start
+livenessProbe:
+  enabled: false
+  initialDelaySeconds: 120
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  tcpSocket:
+    port: http
+
+readinessProbe:
+  enabled: false
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  tcpSocket:
+    port: http
