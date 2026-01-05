@@ -41,33 +41,36 @@ persistence:
     existingClaim: ""
     mountPath: /config
 
-# Storage mounts - selective mounting for isolation + hardlinks
-# All paths should be on same filesystem for hardlinks to work
-# Container sees /storage/downloads and /storage/movies
+# Storage mounts - flexible list of volumes
+# Each entry can use either hostPath or existingClaim
 #
-# Option C (Recommended): Use shared disk PVC with subPath
-# - One PVC per disk (e.g., disk1-storage)
-# - subPath provides selective access (downloads/complete/radarr, movies)
-# - Hardlinks work because same underlying filesystem
-storage:
-  downloads:
-    enabled: true
-    # Host path to downloads directory (legacy, prefer existingClaim + subPath)
-    hostPath: ""
-    # Use existing PVC (recommended: shared disk PVC)
-    existingClaim: ""
-    # SubPath within the PVC (e.g., downloads/complete/radarr)
-    subPath: ""
-    mountPath: /storage/downloads
-  movies:
-    enabled: true
-    # Host path to movies directory (legacy, prefer existingClaim + subPath)
-    hostPath: ""
-    # Use existing PVC (recommended: shared disk PVC)
-    existingClaim: ""
-    # SubPath within the PVC (e.g., movies)
-    subPath: ""
-    mountPath: /storage/movies
+# Example configurations:
+#
+# Single mount with subPath (hardlinks work):
+#   storage:
+#     - name: data
+#       mountPath: /data
+#       existingClaim: disk1-storage
+#       subPath: movies
+#
+# Multiple mounts:
+#   storage:
+#     - name: downloads
+#       mountPath: /downloads
+#       existingClaim: downloads-pvc
+#     - name: movies
+#       mountPath: /movies
+#       hostPath: /mnt/movies
+#
+# For hardlinks to work, downloads and media must be on the same mount point
+storage: []
+#  - name: data
+#    mountPath: /data
+#    # Use ONE of: existingClaim or hostPath
+#    existingClaim: ""
+#    hostPath: ""
+#    # Optional: subPath within the volume
+#    subPath: ""
 
 # Resource limits
 resources: {}

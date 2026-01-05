@@ -55,17 +55,10 @@ spec:
             - name: config
               mountPath: {{ .Values.persistence.config.mountPath }}
             {{- end }}
-            {{- if .Values.storage.downloads.enabled }}
-            - name: downloads
-              mountPath: {{ .Values.storage.downloads.mountPath }}
-              {{- with .Values.storage.downloads.subPath }}
-              subPath: {{ . }}
-              {{- end }}
-            {{- end }}
-            {{- if .Values.storage.movies.enabled }}
-            - name: movies
-              mountPath: {{ .Values.storage.movies.mountPath }}
-              {{- with .Values.storage.movies.subPath }}
+            {{- range .Values.storage }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              {{- with .subPath }}
               subPath: {{ . }}
               {{- end }}
             {{- end }}
@@ -79,27 +72,14 @@ spec:
           emptyDir: {}
           {{- end }}
         {{- end }}
-        {{- if .Values.storage.downloads.enabled }}
-        - name: downloads
-          {{- if .Values.storage.downloads.existingClaim }}
+        {{- range .Values.storage }}
+        - name: {{ .name }}
+          {{- if .existingClaim }}
           persistentVolumeClaim:
-            claimName: {{ .Values.storage.downloads.existingClaim }}
-          {{- else if .Values.storage.downloads.hostPath }}
+            claimName: {{ .existingClaim }}
+          {{- else if .hostPath }}
           hostPath:
-            path: {{ .Values.storage.downloads.hostPath }}
-            type: DirectoryOrCreate
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
-        {{- end }}
-        {{- if .Values.storage.movies.enabled }}
-        - name: movies
-          {{- if .Values.storage.movies.existingClaim }}
-          persistentVolumeClaim:
-            claimName: {{ .Values.storage.movies.existingClaim }}
-          {{- else if .Values.storage.movies.hostPath }}
-          hostPath:
-            path: {{ .Values.storage.movies.hostPath }}
+            path: {{ .hostPath }}
             type: DirectoryOrCreate
           {{- else }}
           emptyDir: {}
