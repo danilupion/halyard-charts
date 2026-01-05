@@ -1,0 +1,11 @@
+apiVersion: v2
+name: bazarr
+description: Bazarr - Automatic subtitle download for Radarr and Sonarr
+type: application
+version: 0.1.0
+appVersion: "1.5.4"
+
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: "file://../../common"

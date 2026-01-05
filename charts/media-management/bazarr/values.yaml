@@ -1,0 +1,84 @@
+# Default values for bazarr
+# Automatic subtitle download for Radarr and Sonarr
+# Instance-agnostic chart - use fullnameOverride for multi-instance deployments
+
+# Override names for multi-instance deployments
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: lscr.io/linuxserver/bazarr
+  tag: "1.5.4"
+  pullPolicy: IfNotPresent
+
+# LinuxServer container settings
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "UTC"
+
+# Bazarr-specific configuration
+bazarr:
+  port: 6767
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 6767
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence (per-instance)
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /config
+
+# Storage mounts - flexible list of volumes
+# Bazarr needs access to media libraries to scan for subtitles
+#
+# Example:
+#   storage:
+#     - name: movies
+#       mountPath: /movies
+#       existingClaim: disk1-storage
+#       subPath: movies/collection
+#     - name: tv
+#       mountPath: /tv
+#       existingClaim: disk2-storage
+#       subPath: tv/collection
+storage: []
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate for single-replica stateful apps
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  tcpSocket:
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  tcpSocket:
+    port: http
