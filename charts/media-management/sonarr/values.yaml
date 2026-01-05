@@ -1,0 +1,96 @@
+# Default values for sonarr
+# Instance-agnostic chart - use fullnameOverride for multi-instance deployments
+
+# Override names for multi-instance deployments
+nameOverride: ""
+fullnameOverride: ""  # e.g., "sonarr-es" for Spanish instance
+
+# Image configuration
+image:
+  repository: lscr.io/linuxserver/sonarr
+  tag: "4.0.16"
+  pullPolicy: IfNotPresent
+
+# LinuxServer container settings
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "UTC"
+
+# Sonarr-specific configuration
+sonarr:
+  port: 8989
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8989
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence (per-instance)
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /config
+
+# Storage mounts - selective mounting for isolation + hardlinks
+# All paths should be on same filesystem for hardlinks to work
+# Container sees /storage/downloads and /storage/series
+#
+# Option C (Recommended): Use shared disk PVC with subPath
+# - One PVC per disk (e.g., disk2-storage)
+# - subPath provides selective access (downloads/complete/sonarr, series)
+# - Hardlinks work because same underlying filesystem
+storage:
+  downloads:
+    enabled: true
+    # Host path to downloads directory (legacy, prefer existingClaim + subPath)
+    hostPath: ""
+    # Use existing PVC (recommended: shared disk PVC)
+    existingClaim: ""
+    # SubPath within the PVC (e.g., downloads/complete/sonarr)
+    subPath: ""
+    mountPath: /storage/downloads
+  series:
+    enabled: true
+    # Host path to series directory (legacy, prefer existingClaim + subPath)
+    hostPath: ""
+    # Use existing PVC (recommended: shared disk PVC)
+    existingClaim: ""
+    # SubPath within the PVC (e.g., series)
+    subPath: ""
+    mountPath: /storage/series
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate for single-replica stateful apps
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  tcpSocket:
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  tcpSocket:
+    port: http
