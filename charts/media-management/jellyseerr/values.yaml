@@ -1,0 +1,65 @@
+# Default values for jellyseerr
+# Media request management for Plex, Jellyfin, and Emby
+# Instance-agnostic chart - use fullnameOverride for multi-instance deployments
+
+# Override names for multi-instance deployments
+nameOverride: ""
+fullnameOverride: ""  # e.g., "jellyseerr-es" for Spanish instance
+
+# Image configuration
+image:
+  repository: fallenbagel/jellyseerr
+  tag: "2.7.3@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764"
+  pullPolicy: IfNotPresent
+
+# Jellyseerr-specific configuration
+jellyseerr:
+  port: 5055
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 5055
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /app/config
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate for single-replica stateful apps
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  httpGet:
+    path: /api/v1/status
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  httpGet:
+    path: /api/v1/status
+    port: http
