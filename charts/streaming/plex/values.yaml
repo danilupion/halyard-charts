@@ -8,7 +8,7 @@ fullnameOverride: ""
 # Image configuration
 image:
   repository: lscr.io/linuxserver/plex
-  tag: "1.42.2"
+  tag: "1.42.2@sha256:1720efa8e919a724ff3003cce7c1c0ae91a54e097ca3c8f6713a780c6fd73432"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
