@@ -1,0 +1,79 @@
+# Default values for lidarr
+# Music collection manager for Usenet and BitTorrent users
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: lscr.io/linuxserver/lidarr
+  tag: "2.8.2"
+  pullPolicy: IfNotPresent
+
+# LinuxServer container settings
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "UTC"
+
+# Lidarr-specific configuration
+lidarr:
+  port: 8686
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8686
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /config
+
+# Storage mounts - flexible list of volumes
+# For hardlinks to work, downloads and music must be on the same mount point
+#
+# Example:
+#   storage:
+#     - name: data
+#       mountPath: /storage
+#       existingClaim: disk1-storage
+#       subPath: music
+storage: []
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate for single-replica stateful apps
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  tcpSocket:
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  tcpSocket:
+    port: http
