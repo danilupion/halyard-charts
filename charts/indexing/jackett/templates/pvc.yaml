@@ -2,9 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "jackett.name" . }}-config
-  labels:
-    {{- include "jackett.labels" . | nindent 4 }}
+  {{- include "common.metadata" (dict "name" (printf "%s-config" (include "common.fullname" .)) "root" $) | nindent 2 }}
 spec:
   {{- with .Values.persistence.config.accessModes }}
   accessModes:

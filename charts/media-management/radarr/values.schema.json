@@ -1,0 +1,200 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the chart name"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the full name (use for multi-instance: radarr-es, radarr-it)"
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      }
+    },
+    "linuxserver": {
+      "type": "object",
+      "properties": {
+        "puid": {
+          "type": "integer",
+          "description": "User ID for the container process"
+        },
+        "pgid": {
+          "type": "integer",
+          "description": "Group ID for the container process"
+        },
+        "tz": {
+          "type": "string",
+          "description": "Timezone for the container"
+        }
+      }
+    },
+    "radarr": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "description": "Radarr web interface port",
+          "default": 7878
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Kubernetes service type"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Service port"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ingress"
+        },
+        "className": {
+          "type": "string",
+          "description": "Ingress class name"
+        },
+        "annotations": {
+          "type": "object",
+          "description": "Ingress annotations"
+        },
+        "hosts": {
+          "type": "array",
+          "description": "Ingress hosts configuration"
+        },
+        "tls": {
+          "type": "array",
+          "description": "Ingress TLS configuration"
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable config persistence"
+            },
+            "existingClaim": {
+              "type": "string",
+              "description": "Use existing PVC for config"
+            },
+            "mountPath": {
+              "type": "string",
+              "description": "Mount path for config"
+            }
+          }
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "description": "Storage configuration for downloads and movies (selective mounting)",
+      "properties": {
+        "downloads": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable downloads storage"
+            },
+            "hostPath": {
+              "type": "string",
+              "description": "Host path for downloads (e.g., /storage/disk1/downloads/complete/radarr)"
+            },
+            "existingClaim": {
+              "type": "string",
+              "description": "Use existing PVC for downloads"
+            },
+            "mountPath": {
+              "type": "string",
+              "description": "Mount path inside container"
+            }
+          }
+        },
+        "movies": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable movies storage"
+            },
+            "hostPath": {
+              "type": "string",
+              "description": "Host path for movies (e.g., /storage/disk1/movies)"
+            },
+            "existingClaim": {
+              "type": "string",
+              "description": "Use existing PVC for movies"
+            },
+            "mountPath": {
+              "type": "string",
+              "description": "Mount path inside container"
+            }
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "description": "Container resource limits and requests"
+    },
+    "strategy": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["Recreate", "RollingUpdate"],
+          "description": "Deployment strategy"
+        }
+      }
+    },
+    "livenessProbe": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable liveness probe"
+        }
+      }
+    },
+    "readinessProbe": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable readiness probe"
+        }
+      }
+    }
+  }
+}

@@ -10,19 +10,19 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "common.selectorLabels" (dict "root" $ "component" "indexer") | nindent 6 }}
+      {{- include "common.selectorLabels" (dict "root" $ "component" "media-management") | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "common.selectorLabels" (dict "root" $ "component" "indexer") | nindent 8 }}
+        {{- include "common.selectorLabels" (dict "root" $ "component" "media-management") | nindent 8 }}
     spec:
       containers:
-        - name: prowlarr
+        - name: radarr
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.prowlarr.port }}
+              containerPort: {{ .Values.radarr.port }}
               protocol: TCP
           env:
             {{- include "common.env" (dict "name" "PUID" "value" (.Values.linuxserver.puid | toString)) | nindent 12 }}
@@ -31,22 +31,20 @@ spec:
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
-            httpGet:
-              path: {{ .Values.livenessProbe.httpGet.path }}
-              port: {{ .Values.livenessProbe.httpGet.port }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            tcpSocket:
+              port: {{ .Values.livenessProbe.tcpSocket.port }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
-            httpGet:
-              path: {{ .Values.readinessProbe.httpGet.path }}
-              port: {{ .Values.readinessProbe.httpGet.port }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            tcpSocket:
+              port: {{ .Values.readinessProbe.tcpSocket.port }}
           {{- end }}
           {{- with .Values.resources }}
           resources:
@@ -57,43 +55,47 @@ spec:
             - name: config
               mountPath: {{ .Values.persistence.config.mountPath }}
             {{- end }}
-        {{- if .Values.socks5.enabled }}
-        - name: socks5-sidecar
-          image: alpine:latest
-          command:
-            - /bin/sh
-            - -c
-            - |
-              apk add --no-cache openssh-client && \
-              mkdir -p /root/.ssh && \
-              cp /ssh-keys/{{ .Values.socks5.existingSecretKey }} /root/.ssh/id_rsa && \
-              chmod 600 /root/.ssh/id_rsa && \
-              ssh -o StrictHostKeyChecking=no \
-                  -o ServerAliveInterval=60 \
-                  -N -D 0.0.0.0:{{ .Values.socks5.port }} \
-                  {{ .Values.socks5.user }}@{{ .Values.socks5.host }}
-          volumeMounts:
-            - name: ssh-keys
-              mountPath: /ssh-keys
-              readOnly: true
-        {{- end }}
+            {{- if .Values.storage.downloads.enabled }}
+            - name: downloads
+              mountPath: {{ .Values.storage.downloads.mountPath }}
+            {{- end }}
+            {{- if .Values.storage.movies.enabled }}
+            - name: movies
+              mountPath: {{ .Values.storage.movies.mountPath }}
+            {{- end }}
       volumes:
         {{- if .Values.persistence.config.enabled }}
         - name: config
-          {{- if eq .Values.persistence.config.type "hostPath" }}
-          hostPath:
-            path: {{ required "persistence.config.hostPath is required" .Values.persistence.config.hostPath }}
-            type: DirectoryOrCreate
-          {{- else if eq .Values.persistence.config.type "pvc" }}
+          {{- if .Values.persistence.config.existingClaim }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.config.existingClaim | default (printf "%s-config" (include "common.fullname" .)) }}
+            claimName: {{ .Values.persistence.config.existingClaim }}
+          {{- else }}
+          emptyDir: {}
           {{- end }}
         {{- end }}
-        {{- if .Values.socks5.enabled }}
-        - name: ssh-keys
-          secret:
-            secretName: {{ .Values.socks5.existingSecret }}
-            items:
-              - key: {{ .Values.socks5.existingSecretKey }}
-                path: {{ .Values.socks5.existingSecretKey }}
+        {{- if .Values.storage.downloads.enabled }}
+        - name: downloads
+          {{- if .Values.storage.downloads.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.storage.downloads.existingClaim }}
+          {{- else if .Values.storage.downloads.hostPath }}
+          hostPath:
+            path: {{ .Values.storage.downloads.hostPath }}
+            type: DirectoryOrCreate
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.storage.movies.enabled }}
+        - name: movies
+          {{- if .Values.storage.movies.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.storage.movies.existingClaim }}
+          {{- else if .Values.storage.movies.hostPath }}
+          hostPath:
+            path: {{ .Values.storage.movies.hostPath }}
+            type: DirectoryOrCreate
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         {{- end }}

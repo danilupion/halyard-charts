@@ -1,9 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "jackett.name" . }}
-  labels:
-    {{- include "jackett.labels" . | nindent 4 }}
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
 spec:
   replicas: 1
   {{- with .Values.strategy }}
@@ -12,11 +10,11 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "jackett.selectorLabels" . | nindent 6 }}
+      {{- include "common.selectorLabels" (dict "root" $ "component" "indexer") | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "jackett.selectorLabels" . | nindent 8 }}
+        {{- include "common.selectorLabels" (dict "root" $ "component" "indexer") | nindent 8 }}
     spec:
       containers:
         - name: jackett
@@ -27,15 +25,11 @@ spec:
               containerPort: {{ .Values.jackett.port }}
               protocol: TCP
           env:
-            - name: PUID
-              value: "{{ .Values.linuxserver.puid }}"
-            - name: PGID
-              value: "{{ .Values.linuxserver.pgid }}"
-            - name: TZ
-              value: {{ .Values.linuxserver.tz | quote }}
+            {{- include "common.env" (dict "name" "PUID" "value" (.Values.linuxserver.puid | toString)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "PGID" "value" (.Values.linuxserver.pgid | toString)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "TZ" "value" .Values.linuxserver.tz) | nindent 12 }}
             {{- if .Values.jackett.autoUpdate }}
-            - name: AUTO_UPDATE
-              value: "true"
+            {{- include "common.env" (dict "name" "AUTO_UPDATE" "value" "true") | nindent 12 }}
             {{- end }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
@@ -105,7 +99,7 @@ spec:
             type: DirectoryOrCreate
           {{- else if eq .Values.persistence.config.type "pvc" }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.config.existingClaim | default (printf "%s-config" (include "jackett.name" .)) }}
+            claimName: {{ .Values.persistence.config.existingClaim | default (printf "%s-config" (include "common.fullname" .)) }}
           {{- end }}
         {{- end }}
         {{- if .Values.socks5.enabled }}

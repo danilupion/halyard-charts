@@ -1,0 +1,11 @@
+apiVersion: v2
+name: radarr
+description: Radarr - Movie collection manager for Usenet and BitTorrent users
+type: application
+version: 0.1.0
+appVersion: "5.17.2"
+
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: "file://../../common"
