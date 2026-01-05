@@ -1,0 +1,11 @@
+apiVersion: v2
+name: maintainerr
+description: Maintainerr - Automated media cleanup for Plex ecosystem
+type: application
+version: 0.1.0
+appVersion: "2.25.0"
+
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: "file://../../common"
