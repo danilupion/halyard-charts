@@ -58,10 +58,16 @@ spec:
             {{- if .Values.storage.downloads.enabled }}
             - name: downloads
               mountPath: {{ .Values.storage.downloads.mountPath }}
+              {{- with .Values.storage.downloads.subPath }}
+              subPath: {{ . }}
+              {{- end }}
             {{- end }}
             {{- if .Values.storage.movies.enabled }}
             - name: movies
               mountPath: {{ .Values.storage.movies.mountPath }}
+              {{- with .Values.storage.movies.subPath }}
+              subPath: {{ . }}
+              {{- end }}
             {{- end }}
       volumes:
         {{- if .Values.persistence.config.enabled }}

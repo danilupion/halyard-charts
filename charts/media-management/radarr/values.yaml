@@ -8,7 +8,7 @@ fullnameOverride: ""  # e.g., "radarr-es" for Spanish instance
 # Image configuration
 image:
   repository: lscr.io/linuxserver/radarr
-  tag: "5.28.0@sha256:c984533510abe0219a70e80d15bd0d212b7df21baa0913759c4ce6cc9092240b"
+  tag: "6.0.4@sha256:6c0948b42c149e36bb3dbc0b64d36c77b2d3c9dccf1b424c4f72af1e57ba0c21"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
@@ -44,21 +44,29 @@ persistence:
 # Storage mounts - selective mounting for isolation + hardlinks
 # All paths should be on same filesystem for hardlinks to work
 # Container sees /storage/downloads and /storage/movies
-# Host paths differ per instance
+#
+# Option C (Recommended): Use shared disk PVC with subPath
+# - One PVC per disk (e.g., disk1-storage)
+# - subPath provides selective access (downloads/complete/radarr, movies)
+# - Hardlinks work because same underlying filesystem
 storage:
   downloads:
     enabled: true
-    # Host path to downloads directory (e.g., /storage/disk1/downloads/complete/radarr)
+    # Host path to downloads directory (legacy, prefer existingClaim + subPath)
     hostPath: ""
-    # Or use existing PVC
+    # Use existing PVC (recommended: shared disk PVC)
     existingClaim: ""
+    # SubPath within the PVC (e.g., downloads/complete/radarr)
+    subPath: ""
     mountPath: /storage/downloads
   movies:
     enabled: true
-    # Host path to movies directory (e.g., /storage/disk1/movies)
+    # Host path to movies directory (legacy, prefer existingClaim + subPath)
     hostPath: ""
-    # Or use existing PVC
+    # Use existing PVC (recommended: shared disk PVC)
     existingClaim: ""
+    # SubPath within the PVC (e.g., movies)
+    subPath: ""
     mountPath: /storage/movies
 
 # Resource limits
