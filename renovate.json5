@@ -7,6 +7,16 @@
         'docker',
       ],
       matchPackageNames: [
+        'lscr.io/linuxserver/lidarr',
+      ],
+      allowedVersions: '>=2.0.0 <8.0.0',
+      versioning: 'semver',
+    },
+    {
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
         'lscr.io/linuxserver/qbittorrent',
       ],
       allowedVersions: '>=5.0.0 <14.0.0',
