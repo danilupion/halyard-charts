@@ -8,7 +8,7 @@ fullnameOverride: ""
 # Image configuration
 image:
   repository: mauricenino/dashdot
-  tag: "5.8.3@sha256:d78f64ccdd92b769794c8ff79d9e27509c4482b8e3d342aa04cd772b3dbd7b74"
+  tag: "5.9.2@sha256:2369978169172d213368fb8b3f9df8aca31a2cbd116be9b6a21506d6f7a6e16c"
   pullPolicy: IfNotPresent
 
 # Dash-specific configuration
