@@ -1,0 +1,72 @@
+# Default values for filebrowser
+# Web-based file manager
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: filebrowser/filebrowser
+  tag: "v2.31.2"
+  pullPolicy: IfNotPresent
+
+# Filebrowser-specific configuration
+filebrowser:
+  port: 80
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Persistence
+persistence:
+  # Database storage
+  database:
+    enabled: true
+    existingClaim: ""
+    mountPath: /database
+
+  # Data to browse (root folder)
+  data:
+    enabled: true
+    existingClaim: ""
+    mountPath: /srv
+    subPath: ""
+
+# Resource limits
+resources: {}
+
+# Deployment strategy
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  httpGet:
+    path: /health
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  httpGet:
+    path: /health
+    port: http
