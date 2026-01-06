@@ -1,0 +1,66 @@
+# Default values for dash (dashdot)
+# Modern server dashboard
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: mauricenino/dashdot
+  tag: "5.8.3"
+  pullPolicy: IfNotPresent
+
+# Dash-specific configuration
+dash:
+  port: 3001
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3001
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Host filesystem access (required for system stats)
+hostAccess:
+  enabled: true
+  mountPath: /mnt/host
+  readOnly: true
+
+# Privileged mode (required for full system access)
+privileged: true
+
+# Resource limits
+resources: {}
+
+# Deployment strategy
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  httpGet:
+    path: /
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  httpGet:
+    path: /
+    port: http
