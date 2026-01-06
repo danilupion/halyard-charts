@@ -24,6 +24,8 @@ spec:
             - name: http
               containerPort: {{ .Values.filebrowser.port }}
               protocol: TCP
+          env:
+            {{- include "common.env" (dict "name" "FB_PORT" "value" (toString .Values.filebrowser.port)) | nindent 12 }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}

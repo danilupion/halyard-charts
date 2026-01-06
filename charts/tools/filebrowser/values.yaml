@@ -13,12 +13,12 @@ image:
 
 # Filebrowser-specific configuration
 filebrowser:
-  port: 80
+  port: 8080
 
 # Service configuration
 service:
   type: ClusterIP
-  port: 80
+  port: 8080
 
 # Ingress configuration
 ingress:
