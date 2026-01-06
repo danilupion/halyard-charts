@@ -1,0 +1,11 @@
+apiVersion: v2
+name: home-assistant
+description: Home Assistant - Open source home automation
+type: application
+version: 0.1.0
+appVersion: "2025.1.0"
+
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: "file://../../common"

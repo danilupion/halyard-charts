@@ -1,0 +1,73 @@
+# Default values for home-assistant
+# Open source home automation
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  tag: "stable"
+  pullPolicy: IfNotPresent
+
+# Timezone
+timezone: "UTC"
+
+# Home Assistant-specific configuration
+homeAssistant:
+  port: 8123
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8123
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /config
+
+# Resource limits
+resources: {}
+
+# Deployment strategy
+strategy:
+  type: Recreate
+
+# Host network mode (required for device discovery)
+hostNetwork: false
+
+# Privileged mode (required for USB devices like Zigbee)
+privileged: false
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  httpGet:
+    path: /
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  httpGet:
+    path: /
+    port: http
