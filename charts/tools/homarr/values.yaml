@@ -1,0 +1,73 @@
+# Default values for homarr
+# Modern homelab dashboard
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: ghcr.io/homarr-labs/homarr
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Timezone
+timezone: "UTC"
+
+# Homarr-specific configuration
+homarr:
+  port: 7575
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 7575
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence
+persistence:
+  appdata:
+    enabled: true
+    existingClaim: ""
+    mountPath: /appdata
+
+# Resource limits
+resources: {}
+
+# Deployment strategy
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  httpGet:
+    path: /
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  httpGet:
+    path: /
+    port: http
+
+# Secret for encryption key
+# Must be 64 character hex string (generate with: openssl rand -hex 32)
+secretEncryptionKey:
+  existingSecret: ""
+  secretKey: "SECRET_ENCRYPTION_KEY"
