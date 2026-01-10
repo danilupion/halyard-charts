@@ -1,0 +1,25 @@
+{{- if .Values.socks5.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: socks5
+      protocol: TCP
+      name: socks5
+    {{- if .Values.httpProxy.enabled }}
+    - port: {{ .Values.httpProxy.port }}
+      targetPort: http-proxy
+      protocol: TCP
+      name: http-proxy
+    {{- end }}
+  selector:
+    {{- include "common.selectorLabels" (dict "root" $ "component" "gateway") | nindent 4 }}
+{{- end }}

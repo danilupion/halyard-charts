@@ -1,0 +1,200 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "nameOverride": {
+      "type": "string",
+      "description": "Override chart name"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override full release name"
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      },
+      "required": ["repository", "tag", "pullPolicy"]
+    },
+    "tailscale": {
+      "type": "object",
+      "description": "Tailscale client configuration",
+      "properties": {
+        "loginServer": {
+          "type": "string",
+          "description": "Headscale/Tailscale control server URL"
+        },
+        "hostname": {
+          "type": "string",
+          "description": "Hostname to register in the tailnet"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags to advertise for ACL-based permissions"
+        },
+        "exitNode": {
+          "type": "string",
+          "description": "Exit node hostname or IP to route traffic through"
+        },
+        "acceptRoutes": {
+          "type": "boolean",
+          "description": "Accept routes advertised by other nodes"
+        },
+        "userspace": {
+          "type": "boolean",
+          "description": "Use userspace networking (recommended for Kubernetes)"
+        },
+        "extraArgs": {
+          "type": "string",
+          "description": "Additional Tailscale arguments"
+        }
+      }
+    },
+    "socks5": {
+      "type": "object",
+      "description": "SOCKS5 proxy configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable SOCKS5 proxy"
+        },
+        "address": {
+          "type": "string",
+          "description": "Address to bind SOCKS5 server"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "SOCKS5 proxy port"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "httpProxy": {
+      "type": "object",
+      "description": "HTTP proxy configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable HTTP proxy"
+        },
+        "address": {
+          "type": "string",
+          "description": "Address to bind HTTP proxy"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "HTTP proxy port"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "authKey": {
+      "type": "object",
+      "description": "Tailscale auth key configuration",
+      "properties": {
+        "value": {
+          "type": "string",
+          "description": "Direct auth key value (not recommended)"
+        },
+        "existingSecret": {
+          "type": "string",
+          "description": "Existing secret containing auth key"
+        },
+        "existingSecretKey": {
+          "type": "string",
+          "description": "Key in secret containing auth key"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Service type"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Service port"
+        },
+        "annotations": {
+          "type": "object",
+          "description": "Service annotations"
+        }
+      },
+      "required": ["type", "port"]
+    },
+    "resources": {
+      "type": "object",
+      "description": "Resource limits and requests",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Node selector"
+    },
+    "tolerations": {
+      "type": "array",
+      "description": "Tolerations"
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity rules"
+    },
+    "commonLabels": {
+      "type": "object",
+      "description": "Common labels to add to all resources"
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "description": "Common annotations to add to all resources"
+    }
+  },
+  "required": ["image", "tailscale", "socks5", "authKey", "service"]
+}

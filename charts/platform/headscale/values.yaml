@@ -124,6 +124,9 @@ subnetRouter:
   tags: []
   # - tag:subnet-router
 
+  # Advertise as exit node (routes all internet traffic through this node)
+  advertiseExitNode: false
+
   # Pre-auth key for the subnet router
   # Create with: headscale preauthkeys create --user admin --reusable --expiration 365d
   authKey: ""

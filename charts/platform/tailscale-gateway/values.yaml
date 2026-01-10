@@ -1,0 +1,91 @@
+# Tailscale Gateway configuration
+# Provides SOCKS5 proxy routing through a Tailscale exit node
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: tailscale/tailscale
+  tag: "stable"
+  pullPolicy: IfNotPresent
+
+# Tailscale configuration
+tailscale:
+  # Headscale/Tailscale control server URL (required for Headscale)
+  # Leave empty to use Tailscale.com
+  loginServer: ""
+
+  # Hostname to register as in the tailnet
+  hostname: ""
+
+  # Tags to advertise (for ACL-based permissions)
+  tags: []
+  # - tag:exit-client
+
+  # Exit node to use (hostname or IP of the exit node device)
+  # Required for routing traffic through an exit node
+  exitNode: ""
+
+  # Accept routes advertised by other nodes
+  acceptRoutes: false
+
+  # Use userspace networking (recommended for Kubernetes)
+  # Set to false only if you need kernel networking and have NET_ADMIN
+  userspace: true
+
+  # Additional Tailscale arguments
+  extraArgs: ""
+
+# SOCKS5 proxy configuration
+socks5:
+  enabled: true
+  # Address to bind SOCKS5 server
+  # Use 0.0.0.0 to accept connections from other pods
+  address: "0.0.0.0"
+  port: 1080
+
+# HTTP proxy configuration (optional, in addition to SOCKS5)
+httpProxy:
+  enabled: false
+  address: "0.0.0.0"
+  port: 8080
+
+# Auth key configuration
+authKey:
+  # Direct auth key value (not recommended for production)
+  value: ""
+  # Use existing secret (recommended)
+  existingSecret: ""
+  existingSecretKey: "auth-key"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 1080
+  annotations: {}
+
+# Resource limits
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Common labels to add to all resources
+commonLabels: {}
+
+# Common annotations to add to all resources
+commonAnnotations: {}
