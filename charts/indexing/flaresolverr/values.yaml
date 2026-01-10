@@ -35,7 +35,14 @@ flaresolverr:
   # Anthropic/Capsolver API key (optional, for solving captchas)
   captchaSolver: ""
 
-# SOCKS5 proxy sidecar (SSH tunnel)
+# External SOCKS5 proxy (e.g., tailscale-gateway)
+# Use this instead of socks5 sidecar for centralized proxy
+externalProxy:
+  enabled: false
+  # Full proxy URL (e.g., socks5://tailscale-gateway.tailscale-gateway.svc.cluster.local:1080)
+  url: ""
+
+# SOCKS5 proxy sidecar (SSH tunnel) - DEPRECATED: use externalProxy instead
 socks5:
   enabled: false
   # SSH user

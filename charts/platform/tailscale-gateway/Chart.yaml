@@ -1,0 +1,22 @@
+apiVersion: v2
+name: tailscale-gateway
+description: Tailscale gateway with SOCKS5 proxy for exit node routing
+type: application
+version: 1.0.0
+appVersion: "1.78"
+keywords:
+  - tailscale
+  - vpn
+  - socks5
+  - proxy
+  - exit-node
+  - headscale
+home: https://tailscale.com
+sources:
+  - https://github.com/tailscale/tailscale
+maintainers:
+  - name: danilupion
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common

@@ -40,7 +40,10 @@ spec:
             {{- if .Values.flaresolverr.captchaSolver }}
             {{- include "common.env" (dict "name" "CAPTCHA_SOLVER" "value" .Values.flaresolverr.captchaSolver) | nindent 12 }}
             {{- end }}
-            {{- if .Values.socks5.enabled }}
+            {{- if .Values.externalProxy.enabled }}
+            - name: CHROME_ARGS
+              value: --proxy-server="{{ .Values.externalProxy.url }}" --host-resolver-rules="MAP * ~NOTFOUND , EXCLUDE localhost" --dns-prefetch-disable
+            {{- else if .Values.socks5.enabled }}
             - name: CHROME_ARGS
               value: --proxy-server="socks5://localhost:{{ .Values.socks5.port }}" --host-resolver-rules="MAP * ~NOTFOUND , EXCLUDE localhost" --dns-prefetch-disable
             {{- end }}

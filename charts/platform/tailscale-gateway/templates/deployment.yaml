@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "gateway") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "gateway") | nindent 8 }}
+    spec:
+      containers:
+        - name: tailscale
+          {{- include "common.image" (dict "repository" .Values.image.repository "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          {{- if .Values.tailscale.exitNode }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Start the normal container entrypoint in background
+              /usr/local/bin/containerboot &
+              BOOT_PID=$!
+
+              # Wait for tailscale to be ready
+              echo "Waiting for tailscale to authenticate..."
+              while ! tailscale status >/dev/null 2>&1; do
+                sleep 1
+              done
+
+              # Set exit node after authentication
+              echo "Setting exit node to {{ .Values.tailscale.exitNode }}..."
+              tailscale set --exit-node={{ .Values.tailscale.exitNode }}
+
+              # Wait for the boot process
+              wait $BOOT_PID
+          {{- end }}
+          env:
+            - name: TS_AUTHKEY
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.authKey.existingSecret }}
+                  name: {{ .Values.authKey.existingSecret }}
+                  key: {{ .Values.authKey.existingSecretKey }}
+                  {{- else }}
+                  name: {{ include "common.fullname" . }}-auth
+                  key: auth-key
+                  {{- end }}
+            - name: TS_STATE_DIR
+              value: /var/lib/tailscale
+            - name: TS_KUBE_SECRET
+              value: ""
+            - name: TS_SOCKET
+              value: /var/run/tailscale/tailscaled.sock
+            - name: TS_USERSPACE
+              value: {{ .Values.tailscale.userspace | quote }}
+            {{- if .Values.socks5.enabled }}
+            - name: TS_SOCKS5_SERVER
+              value: "{{ .Values.socks5.address }}:{{ .Values.socks5.port }}"
+            {{- end }}
+            {{- if .Values.httpProxy.enabled }}
+            - name: TS_OUTBOUND_HTTP_PROXY_LISTEN
+              value: "{{ .Values.httpProxy.address }}:{{ .Values.httpProxy.port }}"
+            {{- end }}
+            - name: TS_EXTRA_ARGS
+              value: >-
+                {{- if .Values.tailscale.loginServer }}
+                --login-server={{ .Values.tailscale.loginServer }}
+                {{- end }}
+                {{- if .Values.tailscale.hostname }}
+                --hostname={{ .Values.tailscale.hostname }}
+                {{- end }}
+                {{- if .Values.tailscale.tags }}
+                --advertise-tags={{ join "," .Values.tailscale.tags }}
+                {{- end }}
+                --accept-routes={{ .Values.tailscale.acceptRoutes }}
+                {{- if .Values.tailscale.extraArgs }}
+                {{ .Values.tailscale.extraArgs }}
+                {{- end }}
+          {{- if not .Values.tailscale.userspace }}
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if not .Values.tailscale.userspace }}
+            - name: tun
+              mountPath: /dev/net/tun
+            {{- end }}
+            - name: state
+              mountPath: /var/lib/tailscale
+            - name: run
+              mountPath: /var/run/tailscale
+          ports:
+            {{- if .Values.socks5.enabled }}
+            - name: socks5
+              containerPort: {{ .Values.socks5.port }}
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.httpProxy.enabled }}
+            - name: http-proxy
+              containerPort: {{ .Values.httpProxy.port }}
+              protocol: TCP
+            {{- end }}
+      volumes:
+        {{- if not .Values.tailscale.userspace }}
+        - name: tun
+          hostPath:
+            path: /dev/net/tun
+            type: CharDevice
+        {{- end }}
+        - name: state
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
