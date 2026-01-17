@@ -3,6 +3,11 @@
   extends: ["config:best-practices"],
   packageRules: [
     {
+      matchDatasources: ["docker"],
+      matchUpdateTypes: ["digest"],
+      groupName: "docker digests",
+    },
+    {
       matchDatasources: [
         'docker',
       ],
