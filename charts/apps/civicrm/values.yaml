@@ -14,7 +14,7 @@ fullnameOverride: ""
 image:
   registry: docker.io
   repository: civicrm/civicrm
-  tag: 6.11.0@sha256:4270d8c58f7a34bc9334a097474e22ca3e841d432a5d5448b4d32adcb497cf0c
+  tag: 6.11.0@sha256:d1adf4456fbb9f7ef08f7fc18876a3761dcdbe1064507d2799f7a39ab1c1933b
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
