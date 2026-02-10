@@ -1,0 +1,28 @@
+{{- if .Values.subnetRouter.enabled -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-subnet-router" (include "common.fullname" .)) "root" $) | nindent 2 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames:
+      - {{ printf "%s-subnet-router-state" (include "common.fullname" .) }}
+    verbs: ["get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-subnet-router" (include "common.fullname" .)) "root" $) | nindent 2 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "common.fullname" . }}-subnet-router
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "common.fullname" . }}-subnet-router
+    namespace: {{ .Release.Namespace }}
+{{- end }}

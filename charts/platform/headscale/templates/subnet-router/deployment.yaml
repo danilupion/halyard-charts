@@ -30,10 +30,8 @@ spec:
                   name: {{ include "common.fullname" . }}-subnet-router
                   key: auth-key
                   {{- end }}
-            - name: TS_STATE_DIR
-              value: /var/lib/tailscale
             - name: TS_KUBE_SECRET
-              value: ""
+              value: {{ printf "%s-subnet-router-state" (include "common.fullname" .) | quote }}
             - name: TS_SOCKET
               value: /var/run/tailscale/tailscaled.sock
             - name: TS_USERSPACE
