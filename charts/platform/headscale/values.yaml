@@ -59,7 +59,7 @@ headscale:
     existingSecretKey: client-secret
 
   # Ephemeral node cleanup timeout
-  ephemeralNodeTimeout: 30m
+  ephemeralNodeTimeout: 2m
 
   # Log level: trace, debug, info, warn, error
   logLevel: info
