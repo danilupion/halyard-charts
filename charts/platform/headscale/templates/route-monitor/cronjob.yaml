@@ -1,0 +1,104 @@
+{{- if and .Values.routeMonitor.enabled .Values.subnetRouter.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-route-monitor" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  schedule: {{ .Values.routeMonitor.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            {{- include "common.selectorLabels" (dict "root" $ "component" "route-monitor") | nindent 12 }}
+        spec:
+          serviceAccountName: {{ include "common.fullname" . }}-route-monitor
+          restartPolicy: Never
+          containers:
+            - name: route-monitor
+              {{- include "common.image" (dict "repository" .Values.routeMonitor.image.repository "tag" .Values.routeMonitor.image.tag "pullPolicy" .Values.routeMonitor.image.pullPolicy "root" $) | nindent 14 }}
+              env:
+                - name: NAMESPACE
+                  value: {{ .Release.Namespace | quote }}
+                - name: DEPLOYMENT_NAME
+                  value: {{ include "common.fullname" . | quote }}
+                - name: CHART_NAME
+                  value: {{ include "common.name" . | quote }}
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -euo pipefail
+
+                  # Find running headscale pod
+                  POD=$(kubectl get pods -n "$NAMESPACE" \
+                    -l "app.kubernetes.io/name=${CHART_NAME},app.kubernetes.io/component=server" \
+                    --field-selector=status.phase=Running \
+                    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+
+                  if [ -z "$POD" ]; then
+                    echo "No running headscale pod found, skipping"
+                    exit 0
+                  fi
+
+                  # Check if pod is ready
+                  READY=$(kubectl get pod -n "$NAMESPACE" "$POD" \
+                    -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')
+                  if [ "$READY" != "True" ]; then
+                    echo "Headscale pod not ready, skipping"
+                    exit 0
+                  fi
+
+                  # Get routes
+                  ROUTES=$(kubectl exec -n "$NAMESPACE" "$POD" -- headscale nodes list-routes 2>/dev/null || true)
+
+                  if [ -z "$ROUTES" ]; then
+                    echo "Could not retrieve routes, skipping"
+                    exit 0
+                  fi
+
+                  echo "$ROUTES"
+                  echo ""
+
+                  # Count enabled routes without primary
+                  # Table: ID | Hostname | Approved | Available | Serving (Primary)
+                  # A broken route has content in Approved but empty Serving (Primary)
+                  BAD_COUNT=$(echo "$ROUTES" | awk -F '|' '
+                    NR > 1 {
+                      approved = $3
+                      primary = $5
+                      gsub(/[[:space:]]/, "", approved)
+                      gsub(/[[:space:]]/, "", primary)
+                      if (approved != "" && primary == "") bad++
+                    }
+                    END { print bad+0 }
+                  ')
+
+                  if [ "$BAD_COUNT" -gt 0 ]; then
+                    echo "Found $BAD_COUNT route(s) without primary assignment"
+
+                    # Check for ghost/duplicate subnet-router nodes
+                    NODES=$(kubectl exec -n "$NAMESPACE" "$POD" -- headscale nodes list 2>/dev/null || true)
+                    # Find offline subnet-router nodes and delete them
+                    echo "$NODES" | grep -i "subnet-router\|tag:subnet-router" | while IFS='|' read -r id rest; do
+                      id=$(echo "$id" | tr -d '[:space:]')
+                      if echo "$rest" | grep -q "offline"; then
+                        echo "Deleting offline ghost node $id"
+                        kubectl exec -n "$NAMESPACE" "$POD" -- headscale nodes delete -i "$id" --force 2>/dev/null || true
+                      fi
+                    done
+
+                    echo "Restarting headscale to recalculate primaries..."
+                    kubectl rollout restart deployment/"$DEPLOYMENT_NAME" -n "$NAMESPACE"
+                  else
+                    echo "All routes have primary assignment - OK"
+                  fi
+              {{- with .Values.routeMonitor.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+{{- end }}

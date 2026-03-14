@@ -111,6 +111,23 @@ ingress:
   host: ""
   tls: []
 
+# Route monitor - auto-fixes broken route primary assignment
+# Detects ghost nodes and missing primaries, restarts headscale to recover
+routeMonitor:
+  enabled: false
+  schedule: "*/2 * * * *"
+  image:
+    repository: bitnami/kubectl
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
 # Subnet router configuration
 subnetRouter:
   enabled: false
