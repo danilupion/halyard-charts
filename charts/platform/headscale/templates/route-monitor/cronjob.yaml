@@ -34,6 +34,9 @@ spec:
                 - |
                   set -euo pipefail
 
+                  # Strip ANSI escape codes from input
+                  strip_ansi() { sed 's/\x1b\[[0-9;]*m//g'; }
+
                   # Find running headscale pod
                   POD=$(kubectl get pods -n "$NAMESPACE" \
                     -l "app.kubernetes.io/name=${CHART_NAME},app.kubernetes.io/component=server" \
@@ -53,8 +56,8 @@ spec:
                     exit 0
                   fi
 
-                  # Get routes
-                  ROUTES=$(kubectl exec -n "$NAMESPACE" "$POD" -- headscale nodes list-routes 2>/dev/null || true)
+                  # Get routes (strip ANSI color codes from headscale CLI output)
+                  ROUTES=$(kubectl exec -n "$NAMESPACE" "$POD" -- headscale nodes list-routes 2>/dev/null | strip_ansi || true)
 
                   if [ -z "$ROUTES" ]; then
                     echo "Could not retrieve routes, skipping"
@@ -82,12 +85,15 @@ spec:
                     echo "Found $BAD_COUNT route(s) without primary assignment"
 
                     # Check for ghost/duplicate subnet-router nodes
-                    NODES=$(kubectl exec -n "$NAMESPACE" "$POD" -- headscale nodes list 2>/dev/null || true)
-                    # Find offline subnet-router nodes and delete them
-                    echo "$NODES" | grep -i "subnet-router\|tag:subnet-router" | while IFS='|' read -r id rest; do
+                    # Ghosts are identified by Name ≠ Hostname (headscale appends a random suffix to duplicates)
+                    # Table: ID | Hostname | Name | MachineKey | NodeKey | User | Tags | ...
+                    NODES=$(kubectl exec -n "$NAMESPACE" "$POD" -- headscale nodes list 2>/dev/null | strip_ansi || true)
+                    echo "$NODES" | grep -i "tag:subnet-router" | while IFS='|' read -r id hostname name _rest; do
                       id=$(echo "$id" | tr -d '[:space:]')
-                      if echo "$rest" | grep -q "offline"; then
-                        echo "Deleting offline ghost node $id"
+                      hostname=$(echo "$hostname" | tr -d '[:space:]')
+                      name=$(echo "$name" | tr -d '[:space:]')
+                      if [ "$hostname" != "$name" ]; then
+                        echo "Deleting ghost node $id (hostname=$hostname, name=$name)"
                         kubectl exec -n "$NAMESPACE" "$POD" -- headscale nodes delete -i "$id" --force 2>/dev/null || true
                       fi
                     done
