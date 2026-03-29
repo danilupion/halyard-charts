@@ -26,6 +26,16 @@
       ],
       allowedVersions: '>=5.0.0 <14.0.0',
       versioning: 'semver',
+    },
+    {
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'lscr.io/linuxserver/jackett',
+      ],
+      allowedVersions: '>=0.22.0 <1.0.0',
+      versioning: 'semver',
     }
   ]
 }
