@@ -34,7 +34,6 @@
       matchPackageNames: [
         'lscr.io/linuxserver/jackett',
       ],
-      allowedVersions: '>=0.22.0 <1.0.0',
       versioning: 'semver',
     }
   ]
