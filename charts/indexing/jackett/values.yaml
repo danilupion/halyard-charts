@@ -48,16 +48,6 @@ persistence:
     # Mount path inside container
     mountPath: /config
 
-# SOCKS5 proxy sidecar for geo-bypass
-# Note: Configure proxy per-indexer in Jackett UI (localhost:1080)
-socks5:
-  enabled: false
-  user: ""
-  host: ""
-  port: 1080
-  existingSecret: ""
-  existingSecretKey: "id_rsa"
-
 # Resource limits
 resources: {}
 

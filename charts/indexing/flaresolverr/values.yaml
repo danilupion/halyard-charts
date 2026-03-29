@@ -36,25 +36,10 @@ flaresolverr:
   captchaSolver: ""
 
 # External SOCKS5 proxy (e.g., tailscale-gateway)
-# Use this instead of socks5 sidecar for centralized proxy
 externalProxy:
   enabled: false
   # Full proxy URL (e.g., socks5://tailscale-gateway.tailscale-gateway.svc.cluster.local:1080)
   url: ""
-
-# SOCKS5 proxy sidecar (SSH tunnel) - DEPRECATED: use externalProxy instead
-socks5:
-  enabled: false
-  # SSH user
-  user: ""
-  # SSH host
-  host: ""
-  # SOCKS5 port (local)
-  port: 1080
-  # Existing secret containing SSH key
-  existingSecret: ""
-  # Key in secret for SSH private key
-  existingSecretKey: "id_rsa"
 
 # Service configuration
 service:

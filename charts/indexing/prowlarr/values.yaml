@@ -47,15 +47,6 @@ persistence:
     # Mount path inside container
     mountPath: /config
 
-# SOCKS5 proxy sidecar for geo-bypass
-socks5:
-  enabled: false
-  user: ""
-  host: ""
-  port: 1080
-  existingSecret: ""
-  existingSecretKey: "id_rsa"
-
 # Resource limits
 resources: {}
 

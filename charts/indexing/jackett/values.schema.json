@@ -153,39 +153,6 @@
         }
       }
     },
-    "socks5": {
-      "type": "object",
-      "description": "SOCKS5 proxy sidecar for geo-bypass",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable SOCKS5 sidecar"
-        },
-        "user": {
-          "type": "string",
-          "description": "SSH user for tunnel"
-        },
-        "host": {
-          "type": "string",
-          "description": "SSH host for tunnel"
-        },
-        "port": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 65535,
-          "description": "Local SOCKS5 port"
-        },
-        "existingSecret": {
-          "type": "string",
-          "description": "Existing secret with SSH key"
-        },
-        "existingSecretKey": {
-          "type": "string",
-          "description": "Key in secret containing SSH private key"
-        }
-      },
-      "required": ["enabled"]
-    },
     "resources": {
       "type": "object",
       "description": "Resource limits and requests"

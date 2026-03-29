@@ -70,26 +70,7 @@ spec:
             - name: config
               mountPath: {{ .Values.persistence.config.mountPath }}
             {{- end }}
-        {{- if .Values.socks5.enabled }}
-        - name: socks5-sidecar
-          image: alpine:latest
-          command:
-            - /bin/sh
-            - -c
-            - |
-              apk add --no-cache openssh-client && \
-              mkdir -p /root/.ssh && \
-              cp /ssh-keys/{{ .Values.socks5.existingSecretKey }} /root/.ssh/id_rsa && \
-              chmod 600 /root/.ssh/id_rsa && \
-              ssh -o StrictHostKeyChecking=no \
-                  -o ServerAliveInterval=60 \
-                  -N -D 0.0.0.0:{{ .Values.socks5.port }} \
-                  {{ .Values.socks5.user }}@{{ .Values.socks5.host }}
-          volumeMounts:
-            - name: ssh-keys
-              mountPath: /ssh-keys
-              readOnly: true
-        {{- end }}
+
       volumes:
         {{- if .Values.persistence.config.enabled }}
         - name: config
@@ -101,12 +82,4 @@ spec:
           persistentVolumeClaim:
             claimName: {{ .Values.persistence.config.existingClaim | default (printf "%s-config" (include "common.fullname" .)) }}
           {{- end }}
-        {{- end }}
-        {{- if .Values.socks5.enabled }}
-        - name: ssh-keys
-          secret:
-            secretName: {{ .Values.socks5.existingSecret }}
-            items:
-              - key: {{ .Values.socks5.existingSecretKey }}
-                path: {{ .Values.socks5.existingSecretKey }}
         {{- end }}
