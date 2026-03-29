@@ -74,7 +74,7 @@ spec:
                 {{- if .Values.tailscale.hostname }}
                 --hostname={{ .Values.tailscale.hostname }}
                 {{- end }}
-                {{- if .Values.tailscale.tags }}
+                {{- if and .Values.tailscale.tags (not (or .Values.authKey.existingSecret .Values.authKey.value)) }}
                 --advertise-tags={{ join "," .Values.tailscale.tags }}
                 {{- end }}
                 --accept-routes={{ .Values.tailscale.acceptRoutes }}

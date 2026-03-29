@@ -20,7 +20,11 @@ tailscale:
   # Hostname to register as in the tailnet
   hostname: ""
 
-  # Tags to advertise (for ACL-based permissions)
+  # Tags for ACL-based permissions (e.g., tag:exit-client)
+  # When using a pre-auth key (authKey), tags should be set on the key itself.
+  # Headscale v0.28.0+ rejects --advertise-tags combined with a pre-auth key.
+  # The chart automatically skips --advertise-tags when an auth key is configured.
+  # Keep tags here for documentation of the expected ACL role.
   tags: []
   # - tag:exit-client
 
