@@ -1,0 +1,16 @@
+Linkwarden has been deployed!
+
+{{- if .Values.ingress.enabled }}
+Access Linkwarden at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+Get the application URL by running:
+  kubectl port-forward svc/{{ include "common.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+  Then visit: http://localhost:{{ .Values.service.port }}
+{{- end }}
+
+On first access, create your admin account (registration will be disabled after setup if configured).
+
+NOTE: Ensure PostgreSQL is running and the linkwarden database exists before deploying.

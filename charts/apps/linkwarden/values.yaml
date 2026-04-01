@@ -1,0 +1,132 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the resources
+fullnameOverride: ""
+
+# Linkwarden container image
+image:
+  registry: ghcr.io
+  repository: linkwarden/linkwarden
+  tag: v2.14.0
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of replicas (recommend 1 for stateful applications)
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+  annotations: {}
+
+# Ingress configuration for external access
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: linkwarden.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: linkwarden-tls
+    #   hosts:
+    #     - linkwarden.example.com
+
+# Persistent storage for archived web pages and data
+persistence:
+  enabled: true
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  existingClaim: ""
+
+# Database configuration (external PostgreSQL required)
+# The secret must contain a DATABASE_URL key with the full connection string
+# Format: postgresql://user:password@host:5432/database
+database:
+  existingSecret: ""
+  existingSecretKey: DATABASE_URL
+
+# NextAuth.js configuration
+nextauth:
+  # Full URL to the auth endpoint (required)
+  # Example: https://linkwarden.example.com/api/v1/auth
+  url: ""
+  # Existing secret containing the NEXTAUTH_SECRET key
+  existingSecret: ""
+  existingSecretKey: NEXTAUTH_SECRET
+
+# Linkwarden application configuration
+linkwarden:
+  # Disable public registration (recommended for self-hosted)
+  disableRegistration: true
+  # Disable web page archiving/preservation
+  disablePreservation: false
+  # Storage folder inside the container for archived data
+  storageFolder: /data/data
+
+  # Additional environment variables
+  extraEnv: []
+    # - name: BROWSER_TIMEOUT
+    #   value: "30000"
+
+  # Extra environment variables from secrets/configmaps
+  extraEnvFrom: []
+    # - secretRef:
+    #     name: linkwarden-extra
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 1000m
+  #   memory: 2Gi
+  # requests:
+  #   cpu: 250m
+  #   memory: 512Mi
+
+# Pod security context
+podSecurityContext: {}
+
+# Container security context
+securityContext: {}
+
+# Liveness probe configuration
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+# Readiness probe configuration
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}
