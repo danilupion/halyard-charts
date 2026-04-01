@@ -70,8 +70,8 @@ nextauth:
 
 # Linkwarden application configuration
 linkwarden:
-  # Disable public registration (recommended for self-hosted)
-  disableRegistration: true
+  # Disable public registration
+  disableRegistration: false
   # Disable web page archiving/preservation
   disablePreservation: false
   # Storage folder inside the container for archived data
