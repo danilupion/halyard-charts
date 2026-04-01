@@ -1,0 +1,76 @@
+{{- if .Values.databases }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-provisioning" (include "common.fullname" .)) "root" $) | nindent 2 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "provisioning") | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      {{- with .Values.primary.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: provisioning
+          {{- include "common.image" (dict
+              "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository)
+              "tag" .Values.image.tag
+              "pullPolicy" .Values.image.pullPolicy
+              "root" $) | nindent 10 }}
+          {{- with .Values.primary.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: PGHOST
+              value: {{ include "common.fullname" . }}
+            - name: PGPORT
+              value: {{ .Values.service.port | quote }}
+            - name: PGUSER
+              value: {{ .Values.auth.username | quote }}
+            - name: PGDATABASE
+              value: {{ .Values.auth.database | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret }}
+                  key: {{ .Values.auth.existingSecretKey }}
+            {{- range .Values.databases }}
+            - name: {{ printf "DB_PASSWORD_%s" (.name | upper | replace "-" "_") }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .passwordSecret }}
+                  key: {{ .passwordSecretKey }}
+            {{- end }}
+          command:
+            - sh
+            - -ce
+            - |
+              {{- range .Values.databases }}
+
+              DB_PASS="${DB_PASSWORD_{{ .name | upper | replace "-" "_" }}}"
+
+              echo "Provisioning user '{{ .user }}' and database '{{ .name }}'..."
+              psql -c "DO \$\$
+              BEGIN
+                IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{{ .user }}') THEN
+                  CREATE ROLE {{ .user }} WITH LOGIN PASSWORD '${DB_PASS}';
+                ELSE
+                  ALTER ROLE {{ .user }} WITH PASSWORD '${DB_PASS}';
+                END IF;
+              END \$\$;"
+
+              psql -tc "SELECT 1 FROM pg_database WHERE datname = '{{ .name }}'" | grep -q 1 \
+                || psql -c "CREATE DATABASE {{ .name }} OWNER {{ .user }}"
+              {{- end }}
+
+              echo "Provisioning complete."
+{{- end }}

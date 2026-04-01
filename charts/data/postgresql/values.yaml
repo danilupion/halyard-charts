@@ -150,6 +150,17 @@ metrics:
     scrapeTimeout: 10s
     labels: {}
 
+# Database provisioning
+# Creates users and databases on every ArgoCD sync (idempotent)
+# Passwords are read from secrets in the postgresql namespace
+# Example:
+#   databases:
+#     - name: myapp
+#       user: myapp
+#       passwordSecret: postgresql-credentials
+#       passwordSecretKey: MYAPP_PASSWORD
+databases: []
+
 # Node selector for pod assignment
 nodeSelector: {}
 
