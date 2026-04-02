@@ -1,0 +1,18 @@
+apiVersion: v2
+name: miniflux
+description: Miniflux - minimalist and opinionated feed reader
+type: application
+version: 0.1.0
+appVersion: "2.2.18"
+keywords:
+  - miniflux
+  - rss
+  - feed-reader
+  - self-hosted
+home: https://miniflux.app
+sources:
+  - https://github.com/miniflux/v2
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common

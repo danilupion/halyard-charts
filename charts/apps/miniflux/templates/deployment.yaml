@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: miniflux
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository) "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            # Database
+            {{- if .Values.database.existingSecret }}
+            {{- include "common.envSecret" (dict "name" "DATABASE_URL" "secret" .Values.database.existingSecret "key" .Values.database.existingSecretKey) | nindent 12 }}
+            {{- end }}
+            # Migrations
+            {{- include "common.env" (dict "name" "RUN_MIGRATIONS" "value" (.Values.miniflux.runMigrations | ternary "1" "0")) | nindent 12 }}
+            # Admin user
+            {{- if and .Values.admin.createAdmin .Values.admin.existingSecret }}
+            {{- include "common.env" (dict "name" "CREATE_ADMIN" "value" "1") | nindent 12 }}
+            {{- include "common.envSecret" (dict "name" "ADMIN_USERNAME" "secret" .Values.admin.existingSecret "key" .Values.admin.usernameKey) | nindent 12 }}
+            {{- include "common.envSecret" (dict "name" "ADMIN_PASSWORD" "secret" .Values.admin.existingSecret "key" .Values.admin.passwordKey) | nindent 12 }}
+            {{- end }}
+            # Application config
+            {{- if .Values.miniflux.baseURL }}
+            {{- include "common.env" (dict "name" "BASE_URL" "value" .Values.miniflux.baseURL) | nindent 12 }}
+            {{- end }}
+            {{- include "common.env" (dict "name" "POLLING_FREQUENCY" "value" (.Values.miniflux.pollingFrequency | toString)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "BATCH_SIZE" "value" (.Values.miniflux.batchSize | toString)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "METRICS_COLLECTOR" "value" (.Values.miniflux.metricsCollector | ternary "1" "0")) | nindent 12 }}
+            # Additional environment variables
+            {{- with .Values.miniflux.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.miniflux.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

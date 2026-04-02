@@ -1,0 +1,126 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the resources
+fullnameOverride: ""
+
+# Miniflux container image
+image:
+  registry: docker.io
+  repository: miniflux/miniflux
+  tag: 2.2.18
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of replicas
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+# Ingress configuration for external access
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: miniflux.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: miniflux-tls
+    #   hosts:
+    #     - miniflux.example.com
+
+# Database configuration (external PostgreSQL required)
+# The secret must contain a DATABASE_URL key with the full connection string
+# Format: postgres://user:password@host:5432/database?sslmode=disable
+database:
+  existingSecret: ""
+  existingSecretKey: DATABASE_URL
+
+# Admin user configuration (for initial setup)
+# On first run, Miniflux creates an admin account using these credentials
+admin:
+  createAdmin: true
+  existingSecret: ""
+  usernameKey: ADMIN_USERNAME
+  passwordKey: ADMIN_PASSWORD
+
+# Miniflux application configuration
+miniflux:
+  # Base URL of the application (e.g., https://miniflux.example.com)
+  baseURL: ""
+  # Automatically run database migrations on startup
+  runMigrations: true
+  # Polling frequency in minutes for fetching feeds
+  pollingFrequency: 60
+  # Number of feeds to check at once
+  batchSize: 100
+  # Enable Prometheus metrics collector
+  metricsCollector: false
+
+  # Additional environment variables
+  extraEnv: []
+    # - name: POLLING_PARSING_ERROR_LIMIT
+    #   value: "3"
+
+  # Extra environment variables from secrets/configmaps
+  extraEnvFrom: []
+    # - secretRef:
+    #     name: miniflux-extra
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# Pod security context
+podSecurityContext: {}
+
+# Container security context
+securityContext: {}
+
+# Liveness probe configuration
+livenessProbe:
+  httpGet:
+    path: /healthcheck
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Readiness probe configuration
+readinessProbe:
+  httpGet:
+    path: /healthcheck
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}

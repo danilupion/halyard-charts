@@ -1,0 +1,14 @@
+Miniflux has been deployed!
+
+{{- if .Values.ingress.enabled }}
+Access Miniflux at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+Get the application URL by running:
+  kubectl port-forward svc/{{ include "common.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+  Then visit: http://localhost:{{ .Values.service.port }}
+{{- end }}
+
+NOTE: Ensure PostgreSQL is running and the miniflux database exists before deploying.
