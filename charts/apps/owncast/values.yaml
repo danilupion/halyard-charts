@@ -1,0 +1,138 @@
+# Resource baseline assumes a single 1080p x264 veryfast rendition.
+# Multi-rendition ladders (720p + 480p + ...) need more CPU — bump resources.limits.cpu.
+
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the resources
+fullnameOverride: ""
+
+# Number of replicas. Owncast is single-instance by design (SQLite + HLS
+# segment directory cannot be shared), so the allowed range is 0 or 1.
+# Set to 0 to idle the app while preserving state on the PVC.
+replicaCount: 1
+
+# Owncast container image
+image:
+  repository: owncast/owncast
+  tag: 0.2.5@sha256:c7508304908238e7276b55c68566608fea53673dd7b79cec91ef7e35f7692ce4
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# HTTP service (web UI + HLS playback)
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+# RTMP ingest service. Default is ClusterIP (in-cluster pushers only).
+# For a VPN/tailnet-reachable push endpoint, set type=LoadBalancer together
+# with the appropriate load-balancer annotations (e.g. MetalLB address pool)
+# AND make sure that pool is NOT reachable from the public internet — RTMP
+# has no TLS. Never put RTMP on a public LB.
+rtmpService:
+  type: ClusterIP
+  port: 1935
+  annotations: {}
+    # metallb.io/address-pool: private-pool
+
+# Ingress configuration for the HTTP service
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: owncast.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: owncast-tls
+    #   hosts:
+    #     - owncast.example.com
+
+# Persistent storage for SQLite state, HLS segments, chat history, uploads
+persistence:
+  enabled: true
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 20Gi
+  existingClaim: ""
+
+# Authentication configuration
+# The chart does not create Secrets — provide one out of band (e.g. SealedSecret)
+# containing the Owncast env vars you want injected (OWNCAST_ADMIN_PASSWORD,
+# OWNCAST_STREAM_KEYS, ...). All keys in the referenced Secret are loaded via envFrom.
+auth:
+  existingSecret: ""
+
+# Additional environment variables
+extraEnv: []
+  # - name: OWNCAST_NAME
+  #   value: "My Stream"
+
+# Extra envFrom sources (configmaps/secrets)
+extraEnvFrom: []
+  # - configMapRef:
+  #     name: owncast-extra
+
+# Resource limits and requests
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Liveness probe configuration
+livenessProbe:
+  httpGet:
+    path: /api/status
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+
+# Readiness probe configuration
+readinessProbe:
+  httpGet:
+    path: /api/status
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}

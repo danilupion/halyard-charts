@@ -1,0 +1,22 @@
+Owncast has been deployed!
+
+{{- if .Values.ingress.enabled }}
+Access the web UI at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+Get the web UI URL by running:
+  kubectl port-forward svc/{{ include "common.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+  Then visit: http://localhost:{{ .Values.service.port }}
+{{- end }}
+
+RTMP ingest (cluster-internal only):
+  rtmp://{{ include "common.fullname" . }}-rtmp.{{ .Release.Namespace }}.svc:{{ .Values.rtmpService.port }}/live/<stream-key>
+
+{{- if not .Values.auth.existingSecret }}
+
+WARNING: auth.existingSecret is not set. Owncast will start with its built-in defaults
+(admin password "abc123" and stream key "abc123"). Provide a Secret with
+OWNCAST_ADMIN_PASSWORD (and optionally OWNCAST_STREAM_KEYS) before going live.
+{{- end }}

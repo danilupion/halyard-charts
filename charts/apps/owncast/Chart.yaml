@@ -1,0 +1,20 @@
+apiVersion: v2
+name: owncast
+description: Owncast - self-hosted live video and web chat server
+type: application
+version: 0.1.0
+appVersion: "0.2.5"
+keywords:
+  - owncast
+  - streaming
+  - live-streaming
+  - rtmp
+  - hls
+  - self-hosted
+home: https://owncast.online
+sources:
+  - https://github.com/owncast/owncast
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common

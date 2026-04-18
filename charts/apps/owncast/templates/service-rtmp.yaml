@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-rtmp" (include "common.fullname" .)) "root" $) | nindent 2 }}
+  {{- with .Values.rtmpService.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.rtmpService.type }}
+  selector:
+    {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 4 }}
+  ports:
+    - name: rtmp
+      port: {{ .Values.rtmpService.port }}
+      targetPort: rtmp
+      protocol: TCP
