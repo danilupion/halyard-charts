@@ -19,7 +19,7 @@ replicaCount: 1
 # Owncast container image
 image:
   repository: owncast/owncast
-  tag: 0.2.5@sha256:c7508304908238e7276b55c68566608fea53673dd7b79cec91ef7e35f7692ce4
+  tag: 0.2.5@sha256:6765d85fdadd6f159729a7238c62adeb57da35fc0dce5233b322c9424285b076
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
