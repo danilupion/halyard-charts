@@ -118,7 +118,7 @@ routeMonitor:
   schedule: "*/2 * * * *"
   image:
     repository: bitnami/kubectl
-    tag: latest@sha256:98736aabcecb8d3cbcdcd7b132d14b1d67ed99bac2f06d471f06235933103df3
+    tag: latest@sha256:3220dcc839f55be732a29548043a1ddf635a0dd6c8781b0f2a0bcdc19029c7d3
     pullPolicy: IfNotPresent
   resources:
     requests:
