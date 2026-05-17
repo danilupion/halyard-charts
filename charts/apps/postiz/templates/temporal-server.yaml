@@ -1,0 +1,70 @@
+{{- if .Values.temporal.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "postiz.temporal.server.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "temporal-server") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "temporal-server") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: temporal
+          {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.temporal.server.image.registry .Values.temporal.server.image.repository) "tag" .Values.temporal.server.image.tag "pullPolicy" .Values.temporal.server.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: grpc
+              containerPort: 7233
+              protocol: TCP
+          env:
+            {{- include "common.env" (dict "name" "DB" "value" "postgres12") | nindent 12 }}
+            {{- include "common.env" (dict "name" "DB_PORT" "value" "5432") | nindent 12 }}
+            {{- include "common.envSecret" (dict "name" "POSTGRES_USER" "secret" .Values.temporal.postgresql.existingSecret "key" "POSTGRES_USER") | nindent 12 }}
+            {{- include "common.envSecret" (dict "name" "POSTGRES_PWD" "secret" .Values.temporal.postgresql.existingSecret "key" "POSTGRES_PASSWORD") | nindent 12 }}
+            {{- include "common.env" (dict "name" "POSTGRES_SEEDS" "value" (include "postiz.temporal.postgresql.fullname" .)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "DYNAMIC_CONFIG_FILE_PATH" "value" "config/dynamicconfig/development-sql.yaml") | nindent 12 }}
+            {{- include "common.env" (dict "name" "ENABLE_ES" "value" "true") | nindent 12 }}
+            {{- include "common.env" (dict "name" "ES_SEEDS" "value" (include "postiz.temporal.elasticsearch.fullname" .)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "ES_VERSION" "value" "v7") | nindent 12 }}
+            {{- include "common.env" (dict "name" "TEMPORAL_NAMESPACE" "value" .Values.temporal.server.namespace) | nindent 12 }}
+          {{- with .Values.temporal.server.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.temporal.server.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.temporal.server.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.temporal.server.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  {{- include "common.metadata" (dict "name" (include "postiz.temporal.server.fullname" .) "root" $) | nindent 2 }}
+spec:
+  type: {{ .Values.temporal.server.service.type }}
+  selector:
+    {{- include "common.selectorLabels" (dict "root" $ "component" "temporal-server") | nindent 4 }}
+  ports:
+    - name: grpc
+      port: {{ .Values.temporal.server.service.port }}
+      targetPort: grpc
+      protocol: TCP
+{{- end }}

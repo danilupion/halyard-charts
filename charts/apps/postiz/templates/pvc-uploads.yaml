@@ -1,0 +1,3 @@
+{{- if and .Values.postiz.persistence.uploads.enabled (not .Values.postiz.persistence.uploads.existingClaim) }}
+{{- include "common.pvc" (dict "name" (printf "%s-uploads" (include "common.fullname" .)) "spec" .Values.postiz.persistence.uploads "root" $) }}
+{{- end }}

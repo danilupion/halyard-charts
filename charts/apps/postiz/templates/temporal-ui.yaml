@@ -1,0 +1,81 @@
+{{- if and .Values.temporal.enabled .Values.temporal.ui.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "postiz.temporal.ui.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "temporal-ui") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "temporal-ui") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: temporal-ui
+          {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.temporal.ui.image.registry .Values.temporal.ui.image.repository) "tag" .Values.temporal.ui.image.tag "pullPolicy" .Values.temporal.ui.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            {{- include "common.env" (dict "name" "TEMPORAL_ADDRESS" "value" (printf "%s:%d" (include "postiz.temporal.server.fullname" .) (int .Values.temporal.server.service.port))) | nindent 12 }}
+          {{- with .Values.temporal.ui.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  {{- include "common.metadata" (dict "name" (include "postiz.temporal.ui.fullname" .) "root" $) | nindent 2 }}
+spec:
+  type: {{ .Values.temporal.ui.service.type }}
+  selector:
+    {{- include "common.selectorLabels" (dict "root" $ "component" "temporal-ui") | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.temporal.ui.service.port }}
+      targetPort: http
+      protocol: TCP
+{{- if .Values.temporal.ui.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  {{- include "common.metadata" (dict "name" (include "postiz.temporal.ui.fullname" .) "root" $) | nindent 2 }}
+  {{- with .Values.temporal.ui.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.temporal.ui.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.temporal.ui.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.temporal.ui.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "postiz.temporal.ui.fullname" $ }}
+                port:
+                  name: http
+          {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}

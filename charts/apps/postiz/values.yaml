@@ -1,0 +1,213 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override the name of the chart
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+# ---------------------------------------------------------------------------
+# Postiz application
+# ---------------------------------------------------------------------------
+postiz:
+  image:
+    registry: ghcr.io
+    repository: gitroomhq/postiz-app
+    tag: v2.21.7
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 5000
+    annotations: {}
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: postiz.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+  persistence:
+    config:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 1Gi
+      existingClaim: ""
+    uploads:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 10Gi
+      existingClaim: ""
+
+  # URLs (required). MAIN_URL/FRONTEND_URL/NEXT_PUBLIC_BACKEND_URL are derived
+  # from `urls.main` if `urls.frontend`/`urls.backend` are not set.
+  urls:
+    main: ""
+    frontend: ""
+    backend: ""
+    internalBackend: "http://localhost:3000"
+
+  # Database connection. Provide a secret containing DATABASE_URL.
+  database:
+    existingSecret: ""
+    existingSecretKey: DATABASE_URL
+
+  # Redis URL. Either set `redis.url` directly, or provide existingSecret/Key.
+  redis:
+    url: ""
+    existingSecret: ""
+    existingSecretKey: REDIS_URL
+
+  # JWT secret. Provide via existingSecret.
+  jwt:
+    existingSecret: ""
+    existingSecretKey: JWT_SECRET
+
+  # Storage provider (`local` or `cloudflare`). For `local`, uploads PVC is used.
+  storage:
+    provider: local
+    uploadDirectory: /uploads
+    publicUploadDirectory: /uploads
+
+  # Toggles
+  isGeneral: "true"
+  disableRegistration: "false"
+
+  # Extra environment variables (e.g. social media API keys)
+  extraEnv: []
+
+  # Extra envFrom (e.g. a secret with all social provider credentials)
+  extraEnvFrom: []
+  # - secretRef:
+  #     name: postiz-social-providers
+
+  resources: {}
+
+  podSecurityContext: {}
+  securityContext: {}
+
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# ---------------------------------------------------------------------------
+# Temporal stack (server + dedicated postgres + elasticsearch + optional UI)
+# ---------------------------------------------------------------------------
+temporal:
+  enabled: true
+
+  # Temporal server (auto-setup image runs schema migrations on first start)
+  server:
+    image:
+      registry: docker.io
+      repository: temporalio/auto-setup
+      tag: "1.28.1"
+      pullPolicy: IfNotPresent
+
+    service:
+      type: ClusterIP
+      port: 7233
+
+    namespace: default
+
+    resources: {}
+
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  # Temporal-only PostgreSQL backing store
+  postgresql:
+    image:
+      registry: docker.io
+      repository: postgres
+      tag: "16-alpine"
+      pullPolicy: IfNotPresent
+
+    # Credentials are pulled from an existing secret (POSTGRES_USER / POSTGRES_PASSWORD keys).
+    existingSecret: ""
+
+    persistence:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 10Gi
+
+    resources: {}
+
+  # Temporal visibility store (Elasticsearch 7.x)
+  elasticsearch:
+    image:
+      registry: docker.io
+      repository: elasticsearch
+      tag: "7.17.27"
+      pullPolicy: IfNotPresent
+
+    javaOpts: "-Xms256m -Xmx256m"
+
+    persistence:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 5Gi
+
+    resources: {}
+
+  # Temporal Web UI (optional)
+  ui:
+    enabled: false
+    image:
+      registry: docker.io
+      repository: temporalio/ui
+      tag: "2.34.0"
+      pullPolicy: IfNotPresent
+
+    service:
+      type: ClusterIP
+      port: 8080
+
+    ingress:
+      enabled: false
+      className: ""
+      annotations: {}
+      hosts:
+        - host: temporal.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: []
+
+    resources: {}

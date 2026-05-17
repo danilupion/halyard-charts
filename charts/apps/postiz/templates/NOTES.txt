@@ -1,0 +1,28 @@
+Postiz has been deployed.
+
+Application:     {{ include "common.fullname" . }}
+Namespace:       {{ .Release.Namespace }}
+Postiz image:    {{ .Values.postiz.image.repository }}:{{ .Values.postiz.image.tag }}
+
+{{- if .Values.postiz.ingress.enabled }}
+
+URL:
+{{- range .Values.postiz.ingress.hosts }}
+  https://{{ .host }}
+{{- end }}
+{{- else }}
+
+Ingress is disabled. Port-forward to reach the UI:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "common.fullname" . }} 5000:{{ .Values.postiz.service.port }}
+{{- end }}
+
+{{- if .Values.temporal.enabled }}
+
+Temporal stack:
+  Server:        {{ include "postiz.temporal.server.fullname" . }}:{{ .Values.temporal.server.service.port }}
+  PostgreSQL:    {{ include "postiz.temporal.postgresql.fullname" . }}:5432
+  Elasticsearch: {{ include "postiz.temporal.elasticsearch.fullname" . }}:9200
+{{- if .Values.temporal.ui.enabled }}
+  Web UI:        {{ include "postiz.temporal.ui.fullname" . }}:{{ .Values.temporal.ui.service.port }}
+{{- end }}
+{{- end }}
