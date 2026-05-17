@@ -15,7 +15,7 @@ postiz:
   image:
     registry: ghcr.io
     repository: gitroomhq/postiz-app
-    tag: v2.21.7
+    tag: v2.21.7@sha256:29a40ab11ef597c340f7f25764e7f040429c6b72c3eda33d15a429ddb66d0933
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -132,7 +132,7 @@ temporal:
     image:
       registry: docker.io
       repository: temporalio/auto-setup
-      tag: "1.28.1"
+      tag: "1.28.1@sha256:607d68caa111338d754771efb876c92dfcdae06d056e4530bb31cd0f37406e6a"
       pullPolicy: IfNotPresent
 
     service:
@@ -152,7 +152,7 @@ temporal:
     image:
       registry: docker.io
       repository: postgres
-      tag: "16-alpine"
+      tag: "16-alpine@sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229"
       pullPolicy: IfNotPresent
 
     # Credentials are pulled from an existing secret (POSTGRES_USER / POSTGRES_PASSWORD keys).
@@ -192,7 +192,7 @@ temporal:
     image:
       registry: docker.io
       repository: temporalio/ui
-      tag: "2.34.0"
+      tag: "2.34.0@sha256:cb17ea423d76a8a19a269d0bcd81fc12eee1f6365acd2a56b590dafb35696a95"
       pullPolicy: IfNotPresent
 
     service:
