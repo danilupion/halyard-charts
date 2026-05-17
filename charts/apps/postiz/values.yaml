@@ -177,6 +177,12 @@ temporal:
 
     javaOpts: "-Xms256m -Xmx256m"
 
+    # ES runs as uid 1000; fsGroup forces the kubelet to chown the PVC at mount.
+    # OnRootMismatch skips the recursive chown on restarts when already correct.
+    podSecurityContext:
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+
     persistence:
       enabled: true
       storageClassName: ""
