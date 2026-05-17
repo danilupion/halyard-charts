@@ -172,7 +172,7 @@ temporal:
     image:
       registry: docker.io
       repository: elasticsearch
-      tag: "7.17.27"
+      tag: "7.17.28@sha256:a06b03a2db8db2be43d3c3851e7bcebdd4fff79f4db08c7da6bad7a8776d3e15"
       pullPolicy: IfNotPresent
 
     javaOpts: "-Xms256m -Xmx256m"
