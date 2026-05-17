@@ -198,7 +198,7 @@ temporal:
     image:
       registry: docker.io
       repository: temporalio/ui
-      tag: "2.34.0@sha256:cb17ea423d76a8a19a269d0bcd81fc12eee1f6365acd2a56b590dafb35696a95"
+      tag: "2.49.1@sha256:a066bdf5c4de689cabaf80cc357871f1db5e6d750a6bcfc42e877b913e31ef24"
       pullPolicy: IfNotPresent
 
     service:
