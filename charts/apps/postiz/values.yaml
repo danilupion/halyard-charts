@@ -132,7 +132,7 @@ temporal:
     image:
       registry: docker.io
       repository: temporalio/auto-setup
-      tag: "1.28.1@sha256:607d68caa111338d754771efb876c92dfcdae06d056e4530bb31cd0f37406e6a"
+      tag: "1.29.6@sha256:1263120feed69d82e4ca23b8ca6f1d702c3029fe70714e382966d0192318eab6"
       pullPolicy: IfNotPresent
 
     service:
