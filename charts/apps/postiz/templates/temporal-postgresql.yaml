@@ -18,6 +18,17 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      # local-path-provisioner ignores fsGroup; chown the mount root so the
+      # postgres user (uid 70 in postgres:N-alpine) can create $PGDATA.
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.36
+          command: ['sh', '-c', 'chown -R 70:70 /var/lib/postgresql/data']
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
           {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.temporal.postgresql.image.registry .Values.temporal.postgresql.image.repository) "tag" .Values.temporal.postgresql.image.tag "pullPolicy" .Values.temporal.postgresql.image.pullPolicy "root" $) | nindent 10 }}

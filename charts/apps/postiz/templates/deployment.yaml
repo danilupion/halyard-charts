@@ -29,6 +29,15 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.postiz.image.registry .Values.postiz.image.repository) "tag" .Values.postiz.image.tag "pullPolicy" .Values.postiz.image.pullPolicy "root" $) | nindent 10 }}
+          # Upstream nginx.conf runs workers as `www` (uid 100) while pm2/Node
+          # runs as root. Uploads written by Node land as root:root, unreadable
+          # to nginx, which serves /uploads/ to the worker — breaks media uploads
+          # to X/IG/etc. Patch nginx to run workers as root so it can read
+          # everything Node writes. Same shared volume, no perms drift.
+          command:
+            - sh
+            - -c
+            - 'sed -i "s/^user .*$/user root;/" /etc/nginx/nginx.conf && nginx && pnpm run pm2'
           ports:
             - name: http
               containerPort: 5000

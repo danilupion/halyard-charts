@@ -32,7 +32,6 @@ spec:
             {{- include "common.envSecret" (dict "name" "POSTGRES_USER" "secret" .Values.temporal.postgresql.existingSecret "key" "POSTGRES_USER") | nindent 12 }}
             {{- include "common.envSecret" (dict "name" "POSTGRES_PWD" "secret" .Values.temporal.postgresql.existingSecret "key" "POSTGRES_PASSWORD") | nindent 12 }}
             {{- include "common.env" (dict "name" "POSTGRES_SEEDS" "value" (include "postiz.temporal.postgresql.fullname" .)) | nindent 12 }}
-            {{- include "common.env" (dict "name" "DYNAMIC_CONFIG_FILE_PATH" "value" "config/dynamicconfig/development-sql.yaml") | nindent 12 }}
             {{- include "common.env" (dict "name" "ENABLE_ES" "value" "true") | nindent 12 }}
             {{- include "common.env" (dict "name" "ES_SEEDS" "value" (include "postiz.temporal.elasticsearch.fullname" .)) | nindent 12 }}
             {{- include "common.env" (dict "name" "ES_VERSION" "value" "v7") | nindent 12 }}
