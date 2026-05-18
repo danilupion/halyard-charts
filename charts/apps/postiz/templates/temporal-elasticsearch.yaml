@@ -22,6 +22,18 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      # local-path-provisioner (and other hostPath-backed CSIs) ignore fsGroup,
+      # so we chown the data dir explicitly. uid 1000 is the elasticsearch user
+      # baked into the official elasticsearch:7.x image.
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.36
+          command: ['sh', '-c', 'chown -R 1000:1000 /usr/share/elasticsearch/data']
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
       containers:
         - name: elasticsearch
           {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.temporal.elasticsearch.image.registry .Values.temporal.elasticsearch.image.repository) "tag" .Values.temporal.elasticsearch.image.tag "pullPolicy" .Values.temporal.elasticsearch.image.pullPolicy "root" $) | nindent 10 }}

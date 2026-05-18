@@ -132,7 +132,7 @@ temporal:
     image:
       registry: docker.io
       repository: temporalio/auto-setup
-      tag: "1.29.6@sha256:1263120feed69d82e4ca23b8ca6f1d702c3029fe70714e382966d0192318eab6"
+      tag: "1.29.6.1"
       pullPolicy: IfNotPresent
 
     service:
@@ -167,12 +167,15 @@ temporal:
 
     resources: {}
 
-  # Temporal visibility store (Elasticsearch 7.x)
+  # Temporal visibility store (Elasticsearch 7.x).
+  # Pinned to 7.x because Temporal 1.29.x only ships index_template_v7.json;
+  # 8.x and 9.x are NOT supported by upstream Temporal.
+  # See renovate.json5 for the version constraint.
   elasticsearch:
     image:
       registry: docker.io
       repository: elasticsearch
-      tag: "9.4.1@sha256:12aec8d2b01e0447c61303fc04a66dfbb7bfbb6a1332faf32707c3a2b54787d8"
+      tag: "7.17.28"
       pullPolicy: IfNotPresent
 
     javaOpts: "-Xms256m -Xmx256m"

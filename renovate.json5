@@ -35,6 +35,19 @@
         'lscr.io/linuxserver/jackett',
       ],
       versioning: 'semver',
+    },
+    {
+      // Temporal 1.29.x ships only ES v7 index templates; 8.x and 9.x break auto-setup.
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'elasticsearch',
+        'docker.io/elasticsearch',
+        'docker.io/library/elasticsearch',
+      ],
+      allowedVersions: '<8.0.0',
+      versioning: 'semver',
     }
   ]
 }
