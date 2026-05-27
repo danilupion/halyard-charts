@@ -1,0 +1,173 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the resources
+fullnameOverride: ""
+
+# Cal.com container image
+image:
+  registry: docker.io
+  repository: calcom/cal.com
+  tag: v6.2.0@sha256:ace3bb1219fb7306585ab9f4d94d41af7ee064c343db0498173436bbe857bd49
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of replicas. Keep at 1: the image entrypoint runs `prisma migrate
+# deploy` on startup and the app is otherwise stateless (state lives in
+# PostgreSQL), so a single replica avoids concurrent-migration races.
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+  annotations: {}
+
+# Ingress configuration for external access
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: calcom.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: calcom-tls
+    #   hosts:
+    #     - calcom.example.com
+
+# Database configuration (external PostgreSQL required).
+# Cal.com's Prisma schema references BOTH DATABASE_URL and DATABASE_DIRECT_URL;
+# when no connection pooler is in front of Postgres, set them to the same value.
+# The secret must contain the keys referenced below.
+# DATABASE_URL format: postgresql://user:password@host:5432/database
+database:
+  existingSecret: ""
+  existingSecretKey: DATABASE_URL
+  # Key holding the direct (non-pooled) connection string required by Prisma.
+  # Leave empty to skip wiring DATABASE_DIRECT_URL.
+  directUrlSecretKey: DATABASE_DIRECT_URL
+
+# NextAuth.js configuration
+nextauth:
+  # Canonical app URL. Defaults to calcom.webAppUrl when empty.
+  url: ""
+  # Existing secret containing the NEXTAUTH_SECRET key
+  existingSecret: ""
+  existingSecretKey: NEXTAUTH_SECRET
+
+# Key used to encrypt stored credentials (e.g. CalDAV) and TOTP/2FA secrets.
+# Must be a 32-character string (used directly as a 32-byte AES-256 key).
+# Generate with `openssl rand -hex 16` (or `openssl rand -base64 24`).
+# NOT `openssl rand -base64 32` (that is 44 chars -> ERR_CRYPTO_INVALID_KEYLEN).
+# Changing it invalidates existing encrypted data.
+encryption:
+  existingSecret: ""
+  existingSecretKey: CALENDSO_ENCRYPTION_KEY
+
+# Email / SMTP (nodemailer). Required to send booking confirmations,
+# reminders, and password-reset emails.
+email:
+  enabled: false
+  # From address and display name
+  from: ""
+  fromName: ""
+  server:
+    host: ""
+    port: 587
+    user: ""
+    # SMTP password is read from a secret
+    existingSecret: ""
+    existingSecretKey: EMAIL_SERVER_PASSWORD
+
+# Cal.com application configuration
+calcom:
+  # Public base URL of the web app, e.g. https://cal.example.com (required)
+  webAppUrl: ""
+  # Self-hosting license acknowledgement. Set to "agree" for self-hosting.
+  licenseConsent: "agree"
+  # Disable anonymous telemetry
+  telemetryDisabled: true
+  # Block public registration. The prebuilt calcom/cal.com image bakes
+  # NEXT_PUBLIC_DISABLE_SIGNUP at build time and cannot honor it at runtime, so
+  # when true (and ingress.enabled) the chart renders a second, redirect-only
+  # Ingress that sends /auth/signup and /api/auth/signup to the login page.
+  # This uses a plain ingress-nginx permanent-redirect — no server snippets and
+  # no controller changes. First-admin /auth/setup and /api/auth/[...nextauth]
+  # login are unaffected.
+  disableSignup: false
+  # Target for blocked signup requests when disableSignup is true.
+  # Empty -> "<webAppUrl>/auth/login".
+  disableSignupRedirectTo: ""
+
+  # Additional environment variables
+  extraEnv: []
+    # - name: NEXT_PUBLIC_WEBSITE_URL
+    #   value: "https://cal.example.com"
+
+  # Extra environment variables from secrets/configmaps
+  extraEnvFrom: []
+    # - secretRef:
+    #     name: calcom-extra
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: "2"
+  #   memory: 2Gi
+  # requests:
+  #   cpu: 500m
+  #   memory: 1Gi
+
+# Pod security context
+podSecurityContext: {}
+
+# Container security context
+securityContext: {}
+
+# Startup probe: first boot runs DB migrations + app-store seeding, which can
+# take a couple of minutes. Give it generous headroom before liveness applies.
+startupProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+# Liveness probe configuration
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+# Readiness probe configuration
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}

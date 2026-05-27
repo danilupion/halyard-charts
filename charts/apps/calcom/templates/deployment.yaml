@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: calcom
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository) "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            # Public URLs
+            {{- include "common.env" (dict "name" "NEXT_PUBLIC_WEBAPP_URL" "value" .Values.calcom.webAppUrl) | nindent 12 }}
+            {{- include "common.env" (dict "name" "NEXTAUTH_URL" "value" (.Values.nextauth.url | default .Values.calcom.webAppUrl)) | nindent 12 }}
+            {{- with .Values.calcom.licenseConsent }}
+            {{- include "common.env" (dict "name" "NEXT_PUBLIC_LICENSE_CONSENT" "value" .) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.calcom.telemetryDisabled }}
+            {{- include "common.env" (dict "name" "CALCOM_TELEMETRY_DISABLED" "value" "1") | nindent 12 }}
+            {{- end }}
+            {{- if .Values.calcom.disableSignup }}
+            {{- include "common.env" (dict "name" "NEXT_PUBLIC_DISABLE_SIGNUP" "value" "true") | nindent 12 }}
+            {{- end }}
+            # Database (Prisma requires both DATABASE_URL and DATABASE_DIRECT_URL)
+            {{- if .Values.database.existingSecret }}
+            {{- include "common.envSecret" (dict "name" "DATABASE_URL" "secret" .Values.database.existingSecret "key" .Values.database.existingSecretKey) | nindent 12 }}
+            {{- if .Values.database.directUrlSecretKey }}
+            {{- include "common.envSecret" (dict "name" "DATABASE_DIRECT_URL" "secret" .Values.database.existingSecret "key" .Values.database.directUrlSecretKey) | nindent 12 }}
+            {{- end }}
+            {{- end }}
+            # Auth + credential encryption
+            {{- if .Values.nextauth.existingSecret }}
+            {{- include "common.envSecret" (dict "name" "NEXTAUTH_SECRET" "secret" .Values.nextauth.existingSecret "key" .Values.nextauth.existingSecretKey) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.encryption.existingSecret }}
+            {{- include "common.envSecret" (dict "name" "CALENDSO_ENCRYPTION_KEY" "secret" .Values.encryption.existingSecret "key" .Values.encryption.existingSecretKey) | nindent 12 }}
+            {{- end }}
+            # Email / SMTP
+            {{- if .Values.email.enabled }}
+            {{- include "common.env" (dict "name" "EMAIL_FROM" "value" .Values.email.from) | nindent 12 }}
+            {{- include "common.env" (dict "name" "EMAIL_FROM_NAME" "value" .Values.email.fromName) | nindent 12 }}
+            {{- include "common.env" (dict "name" "EMAIL_SERVER_HOST" "value" .Values.email.server.host) | nindent 12 }}
+            {{- include "common.env" (dict "name" "EMAIL_SERVER_PORT" "value" (.Values.email.server.port | toString)) | nindent 12 }}
+            {{- include "common.env" (dict "name" "EMAIL_SERVER_USER" "value" .Values.email.server.user) | nindent 12 }}
+            {{- if .Values.email.server.existingSecret }}
+            {{- include "common.envSecret" (dict "name" "EMAIL_SERVER_PASSWORD" "secret" .Values.email.server.existingSecret "key" .Values.email.server.existingSecretKey) | nindent 12 }}
+            {{- end }}
+            {{- end }}
+            # Additional environment variables
+            {{- with .Values.calcom.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.calcom.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

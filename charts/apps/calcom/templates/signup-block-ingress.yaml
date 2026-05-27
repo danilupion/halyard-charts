@@ -1,0 +1,38 @@
+{{- if and .Values.ingress.enabled .Values.calcom.disableSignup }}
+{{- $redirect := .Values.calcom.disableSignupRedirectTo | default (printf "%s/auth/login" (trimSuffix "/" .Values.calcom.webAppUrl)) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-signup-block" (include "common.fullname" .)) "root" $) | nindent 2 }}
+  annotations:
+    # Disable public registration without app or controller changes: redirect the
+    # signup page and API to the login page. The prebuilt calcom/cal.com image
+    # bakes NEXT_PUBLIC_DISABLE_SIGNUP at build time and cannot honor it at
+    # runtime, so we enforce at the edge with a plain Ingress redirect.
+    nginx.ingress.kubernetes.io/permanent-redirect: {{ $redirect | quote }}
+    nginx.ingress.kubernetes.io/permanent-redirect-code: "308"
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          - path: /auth/signup
+            pathType: Exact
+            backend:
+              service:
+                name: {{ include "common.fullname" $ }}
+                port:
+                  name: http
+          - path: /api/auth/signup
+            pathType: Exact
+            backend:
+              service:
+                name: {{ include "common.fullname" $ }}
+                port:
+                  name: http
+    {{- end }}
+{{- end }}
