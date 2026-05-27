@@ -1,0 +1,21 @@
+apiVersion: v2
+name: calcom
+description: Cal.com - the open-source Calendly alternative (scheduling infrastructure)
+type: application
+version: 0.1.0
+appVersion: v6.2.0
+keywords:
+  - calcom
+  - cal.com
+  - scheduling
+  - calendar
+  - booking
+  - calendly
+  - self-hosted
+home: https://cal.com
+sources:
+  - https://github.com/calcom/cal.com
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: file://../../common

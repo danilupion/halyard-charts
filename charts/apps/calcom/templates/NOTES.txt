@@ -1,0 +1,22 @@
+Cal.com has been deployed!
+
+{{- if .Values.ingress.enabled }}
+Access Cal.com at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+Get the application URL by running:
+  kubectl port-forward svc/{{ include "common.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+  Then visit: http://localhost:{{ .Values.service.port }}
+{{- end }}
+
+First boot runs database migrations and seeds the app store, so the pod may
+take a couple of minutes to become ready (this is covered by the startupProbe).
+
+On first access, create your admin account at /auth/signup, then disable
+public registration if desired.
+
+NOTE: Ensure PostgreSQL is reachable and the target database exists before
+deploying. The secret referenced by `database.existingSecret` must contain
+both DATABASE_URL and DATABASE_DIRECT_URL (identical when no pooler is used).
