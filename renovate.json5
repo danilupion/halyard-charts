@@ -1,7 +1,7 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["config:best-practices"],
-  // Supply-chain delay: keep in sync with minimumReleaseAge in pnpm-workspace.yaml
+  // Supply-chain delay: only take releases that are at least 3 days old.
   minimumReleaseAge: '3 days',
   internalChecksFilter: 'strict',
   // Security fixes bypass minimumReleaseAge and are raised immediately; OSV
@@ -12,6 +12,22 @@
       matchDatasources: ["docker"],
       matchUpdateTypes: ["digest"],
       groupName: "docker digests",
+    },
+    {
+      // Digest updates bypass internalChecksFilter (age filtering is unsupported for
+      // digests), so they would open PRs stuck on a pending renovate/stability-days
+      // check. Skip branch/PR creation entirely until that check would pass.
+      matchUpdateTypes: ['digest'],
+      prCreation: 'not-pending',
+    },
+    {
+      // lscr.io/ghcr.io publish no release timestamps (renovatebot/renovate#38656,
+      // renovatebot/renovate#39064), and since Renovate 42 a missing timestamp counts
+      // as "never old enough", which would block these updates forever. Treat missing
+      // timestamps as stable; the 3-day delay still applies wherever timestamps exist.
+      matchDatasources: ['docker'],
+      matchPackageNames: ['lscr.io/**', 'ghcr.io/**'],
+      minimumReleaseAgeBehaviour: 'timestamp-optional',
     },
     {
       matchDatasources: [

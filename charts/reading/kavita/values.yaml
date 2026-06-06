@@ -1,0 +1,79 @@
+# Default values for kavita
+# Self-hosted digital library server for ebooks, comics and manga
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: lscr.io/linuxserver/kavita
+  tag: "0.9.0@sha256:cb69cd31113ffbbc876abe97edf617e684c015ca7d9e78dc1191cb045a60dba1"
+  pullPolicy: IfNotPresent
+
+# LinuxServer container settings
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "UTC"
+
+# Kavita-specific configuration
+kavita:
+  port: 5000
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 5000
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /config
+
+# Storage mounts - flexible list of volumes
+# Mount the library folders Kavita should serve (read access is sufficient)
+#
+# Example:
+#   storage:
+#     - name: books
+#       mountPath: /storage
+#       existingClaim: disk1-storage
+#       subPath: books
+storage: []
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate for single-replica stateful apps
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  tcpSocket:
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  tcpSocket:
+    port: http
