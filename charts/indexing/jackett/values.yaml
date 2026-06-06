@@ -3,7 +3,7 @@
 # Image configuration
 image:
   repository: linuxserver/jackett
-  tag: "0.24.2000@sha256:f26a9ca74678cc6e72d0ab63cb3dfc97c26e3ecc31ae5c83a97261c3404aad91"
+  tag: "0.24.2007@sha256:b4f4360a2e88649f2104804494a63cdfa7bec4507f2477d965ebecdc29b1b8c0"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
