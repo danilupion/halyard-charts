@@ -70,6 +70,21 @@
       ],
       allowedVersions: '<8.0.0',
       versioning: 'semver',
+    },
+    {
+      // percona/mongodb_exporter only ever ships a 0.x line (latest 0.51.0). A
+      // spurious "2.37.0" tag once outsorted the real 0.x releases and got pinned,
+      // then was removed upstream, leaving Renovate unable to resolve its digest
+      // ("Could not determine new digest for update"). Constrain to the real 0.x line.
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'percona/mongodb_exporter',
+        'docker.io/percona/mongodb_exporter',
+      ],
+      allowedVersions: '<1.0.0',
+      versioning: 'semver',
     }
   ]
 }
