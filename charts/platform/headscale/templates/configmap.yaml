@@ -65,8 +65,10 @@ data:
     tls_cert_path: ""
     tls_key_path: ""
 
-    # Ephemeral node settings
-    ephemeral_node_inactivity_timeout: {{ .Values.headscale.ephemeralNodeTimeout }}
+    # Ephemeral node settings (headscale 0.29+ moved this under the node section)
+    node:
+      ephemeral:
+        inactivity_timeout: {{ .Values.headscale.ephemeralNodeTimeout }}
 
     # DNS configuration
     dns:
@@ -92,7 +94,8 @@ data:
     # Disable features we don't need
     logtail:
       enabled: false
-    randomize_client_port: false
+    # NOTE: randomize_client_port was removed in headscale 0.29; the toggle now
+    # lives in the policy file ("randomizeClientPort"). Default (off) needs no key.
 
     {{- if .Values.headscale.policy.enabled }}
     # ACL Policy
