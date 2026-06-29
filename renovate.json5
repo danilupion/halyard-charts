@@ -14,10 +14,14 @@
       groupName: "docker digests",
     },
     {
-      // Digest updates bypass internalChecksFilter (age filtering is unsupported for
-      // digests), so they would open PRs stuck on a pending renovate/stability-days
-      // check. Skip branch/PR creation entirely until that check would pass.
+      // A digest is not a release and carries no timestamp, so minimumReleaseAge can
+      // never be satisfied for one. Under the default timestamp-required behaviour such
+      // updates are held as permanently-pending on renovate/stability-days; under
+      // timestamp-optional they proceed but log a repo-problem WARN. Drop age gating for
+      // digests entirely (it is meaningless for them) so every registry behaves the same
+      // and the grouped "docker digests" branch is never wedged by a stuck member.
       matchUpdateTypes: ['digest'],
+      minimumReleaseAge: null,
       prCreation: 'not-pending',
     },
     {
@@ -25,6 +29,7 @@
       // renovatebot/renovate#39064), and since Renovate 42 a missing timestamp counts
       // as "never old enough", which would block these updates forever. Treat missing
       // timestamps as stable; the 3-day delay still applies wherever timestamps exist.
+      // (Digest updates are handled separately above.)
       matchDatasources: ['docker'],
       matchPackageNames: ['lscr.io/**', 'ghcr.io/**'],
       minimumReleaseAgeBehaviour: 'timestamp-optional',
