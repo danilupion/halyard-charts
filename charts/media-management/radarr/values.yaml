@@ -8,7 +8,7 @@ fullnameOverride: ""  # e.g., "radarr-es" for Spanish instance
 # Image configuration
 image:
   repository: lscr.io/linuxserver/radarr
-  tag: "6.2.1@sha256:7b45af3b660f5ff5f7d6d625bfa99960cb9265e902f1bef136486f6d2be73ee9"
+  tag: "6.2.1@sha256:39da107b5a9371fdaa651bd188049b863716a815385eb3a30d41071b7e1aeb33"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
