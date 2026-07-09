@@ -113,6 +113,23 @@ ingress:
 
 # Route monitor - auto-fixes broken route primary assignment
 # Detects ghost nodes and missing primaries, restarts headscale to recover
+# Watchdog for headscale's broken route-primary assignment (issues #2896/#3020):
+# routes approved but no primary serving -> restarts headscale to recalculate.
+# It does NOT detect a missing/deleted subnet-router node (the route rows vanish
+# entirely and the check passes) - that failure mode is covered by
+# subnetRouter.livenessProbe instead. The two are complementary: the probe
+# re-registers the router, and a re-registration against a running headscale is
+# exactly what can trigger the broken-primary state this monitor fixes.
+#
+# RETIREMENT PLAN: the upstream issues are closed, but recurrences were reported
+# on v0.28 with autoApprovers + tagged pre-auth keys (our exact setup). Retire
+# this monitor when BOTH hold:
+#   1. Its logs have not shown "Found N route(s) without primary assignment" for
+#      ~3 months of normal operation, including several headscale restarts and
+#      at least one headscale upgrade.
+#   2. No new recurrence reports on headscale issues #2896/#3020 (or successors)
+#      for the release line in use.
+# See gitops docs/sop-headscale-vpn-recovery.md for the full context.
 routeMonitor:
   enabled: false
   schedule: "*/2 * * * *"
@@ -154,6 +171,19 @@ subnetRouter:
   # Or use existing secret
   existingSecret: ""
   existingSecretKey: auth-key
+
+  # Restart tailscaled when it loses control-plane sync for a sustained period
+  # (the underlying health warnings surface after ~8 min of desync). Catches the
+  # "node deleted from headscale while pod keeps running" failure mode, which
+  # tailscaled never recovers from on its own (endless 404 map polls). The
+  # restart re-runs `tailscale up --authkey`, re-registering the node.
+  # Worst-case recovery: ~8 min (warning visible) + periodSeconds * failureThreshold.
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 60
+    timeoutSeconds: 10
+    failureThreshold: 3
 
   # Tailscale client image
   image:

@@ -44,6 +44,29 @@ spec:
             {{- end }}
             - name: TS_EXTRA_ARGS
               value: "--login-server={{ .Values.headscale.serverUrl }}{{- if .Values.subnetRouter.advertiseExitNode }} --advertise-exit-node{{- end }} --accept-routes=false"
+          {{- if .Values.subnetRouter.livenessProbe.enabled }}
+          # Self-heals sustained control-plane desync: if this node is deleted from
+          # headscale's database while the pod keeps running (e.g. ephemeral node
+          # cleanup during a headscale restart), tailscaled loops on 404 map polls
+          # forever and never re-registers. The two health warnings whose text
+          # mentions "coordination server" (not-in-map-poll, map-response-timeout)
+          # only become visible after ~8 minutes of sustained desync, so routine
+          # headscale restarts do not trip this probe. The container restart makes
+          # containerboot re-run `tailscale up --authkey`, re-registering the node.
+          # NOTE: containerboot's TS_ENABLE_HEALTH_CHECK /healthz cannot be used
+          # here - it only updates on netmap events, which never arrive in this
+          # failure mode, so it keeps reporting the stale healthy state.
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - '! tailscale status --json | grep -q "coordination server"'
+            initialDelaySeconds: {{ .Values.subnetRouter.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.subnetRouter.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.subnetRouter.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.subnetRouter.livenessProbe.failureThreshold }}
+          {{- end }}
           securityContext:
             capabilities:
               add:
