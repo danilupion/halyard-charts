@@ -1,0 +1,11 @@
+apiVersion: v2
+name: calibre-web-automated-book-downloader
+description: Book search & download companion for Calibre-Web-Automated (writes to the CWA ingest folder)
+type: application
+version: 0.1.0
+appVersion: "latest"
+
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: "file://../../common"

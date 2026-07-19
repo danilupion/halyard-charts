@@ -1,0 +1,97 @@
+# Default values for calibre-web-automated-book-downloader
+# Book search & download companion for Calibre-Web-Automated.
+# Downloads land in the shared CWA ingest folder for automatic import.
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+# NOTE: upstream publishes no semver releases - only rolling `latest`/`main`.
+# Renovate (docker datasource, digest pinning) tracks the `latest` digest.
+image:
+  repository: ghcr.io/calibrain/calibre-web-automated-book-downloader
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# LinuxServer-style container settings (PUID/PGID/TZ supported)
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "UTC"
+
+# Extra environment variables (list of {name, value})
+# Useful downloader options (see upstream docs):
+#   - name: INGEST_DIR            # default /cwa-book-ingest (matches the mount below)
+#     value: /cwa-book-ingest
+#   - name: SEARCH_MODE           # direct | universal
+#     value: direct
+#   - name: BOOK_LANGUAGE
+#     value: en
+# FlareSolverr integration requires the `-external-bypasser` image variant plus:
+#   - name: USING_EXTERNAL_BYPASSER
+#     value: "true"
+#   - name: EXT_BYPASSER_URL
+#     value: http://flaresolverr.indexing.svc.cluster.local:8191
+extraEnv: []
+
+# Downloader-specific configuration
+downloader:
+  port: 8084
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8084
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /config
+
+# Storage mounts - mount the SAME ingest folder CWA watches at /cwa-book-ingest
+# so downloaded books are auto-imported by CWA.
+#
+# Example:
+#   storage:
+#     - name: ingest
+#       mountPath: /cwa-book-ingest
+#       existingClaim: disk1-storage
+#       subPath: books/ingest
+storage: []
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate for single-replica stateful apps
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  tcpSocket:
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  tcpSocket:
+    port: http

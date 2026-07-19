@@ -1,0 +1,11 @@
+apiVersion: v2
+name: calibre-web-automated
+description: Calibre-Web-Automated - self-hosted ebook library with automatic ingest, built on Calibre-Web
+type: application
+version: 0.1.0
+appVersion: "4.0.6"
+
+dependencies:
+  - name: common
+    version: 0.1.0
+    repository: "file://../../common"

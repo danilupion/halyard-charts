@@ -1,0 +1,93 @@
+# Default values for calibre-web-automated
+# Self-hosted ebook library with automatic ingest, built on Calibre-Web
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration
+image:
+  repository: crocodilestick/calibre-web-automated
+  tag: "v4.0.6"
+  pullPolicy: IfNotPresent
+
+# LinuxServer container settings
+linuxserver:
+  puid: 1000
+  pgid: 1000
+  tz: "UTC"
+
+# Extra environment variables (list of {name, value})
+# Useful CWA options:
+#   - name: HARDCOVER_TOKEN         # optional Hardcover metadata provider
+#     value: "..."
+#   - name: NETWORK_SHARE_MODE      # set "true" only for NFS/SMB-backed storage
+#     value: "false"
+extraEnv: []
+
+# Calibre-Web-Automated-specific configuration
+cwa:
+  port: 8083
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8083
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Config persistence
+persistence:
+  config:
+    enabled: true
+    existingClaim: ""
+    mountPath: /config
+
+# Storage mounts - flexible list of volumes.
+# CWA expects two library paths:
+#   /calibre-library  - the Calibre library (metadata.db + books)
+#   /cwa-book-ingest  - watch folder; files dropped here are imported then DELETED
+#
+# Example:
+#   storage:
+#     - name: library
+#       mountPath: /calibre-library
+#       existingClaim: disk1-storage
+#       subPath: books/calibre-library
+#     - name: ingest
+#       mountPath: /cwa-book-ingest
+#       existingClaim: disk1-storage
+#       subPath: books/ingest
+storage: []
+
+# Resource limits
+resources: {}
+
+# Deployment strategy - Recreate for single-replica stateful apps
+strategy:
+  type: Recreate
+
+# Probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  tcpSocket:
+    port: http
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 3
+  tcpSocket:
+    port: http
