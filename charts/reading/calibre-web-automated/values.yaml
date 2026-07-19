@@ -8,7 +8,7 @@ fullnameOverride: ""
 # Image configuration
 image:
   repository: crocodilestick/calibre-web-automated
-  tag: "v4.0.6"
+  tag: "v4.0.6@sha256:c31a738b6d5ec6982c050063dd3f063b6943eb1051fc81144789f840d9093a8d"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
