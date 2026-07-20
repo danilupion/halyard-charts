@@ -16,6 +16,10 @@ spec:
         {{- include "common.selectorLabels" (dict "root" $ "component" "subnet-router") | nindent 8 }}
     spec:
       serviceAccountName: {{ include "common.fullname" . }}-subnet-router
+      {{- with .Values.subnetRouter.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: tailscale
           {{- include "common.image" (dict "repository" .Values.subnetRouter.image.repository "tag" .Values.subnetRouter.image.tag "pullPolicy" .Values.subnetRouter.image.pullPolicy "root" $) | nindent 10 }}

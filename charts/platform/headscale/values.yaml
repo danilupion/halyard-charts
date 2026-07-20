@@ -162,6 +162,15 @@ subnetRouter:
   tags: []
   # - tag:subnet-router
 
+  # Static /etc/hosts entries for the subnet-router pod. Use when the pod shares a
+  # cluster with the control server and should reach it via an internal IP instead
+  # of hairpinning out to the public serverUrl (e.g. a home cluster whose public
+  # FQDN is a DynDNS CNAME to the WAN, where NAT loopback is unreliable).
+  hostAliases: []
+  # - ip: 192.168.3.1
+  #   hostnames:
+  #     - headscale.example.com
+
   # Advertise as exit node (routes all internet traffic through this node)
   advertiseExitNode: false
 
