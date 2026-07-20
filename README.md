@@ -25,7 +25,6 @@ Infrastructure components for cluster setup and management:
 
 Stateful data services for production use:
 
-- **[mysql](charts/data/mysql)** - MySQL standalone database server with Prometheus metrics
 - **[mongodb](charts/data/mongodb)** - MongoDB standalone database server with Prometheus metrics
 - **[postgresql](charts/data/postgresql)** - PostgreSQL standalone database server with Prometheus metrics
 
@@ -33,8 +32,11 @@ Stateful data services for production use:
 
 Application deployments ready for production use:
 
-- **[civicrm](charts/apps/civicrm)** - CiviCRM Standalone - open source CRM for nonprofits, NGOs and advocacy organizations
-- **[obsidian](charts/apps/obsidian)** - Web-based Obsidian MD desktop experience packaged by LinuxServer.io
+- **[calcom](charts/apps/calcom)** - Cal.com, the open-source Calendly alternative (scheduling infrastructure)
+- **[linkwarden](charts/apps/linkwarden)** - Self-hosted collaborative bookmark manager
+- **[miniflux](charts/apps/miniflux)** - Minimalist and opinionated feed reader
+- **[owncast](charts/apps/owncast)** - Self-hosted live video and web chat server
+- **[postiz](charts/apps/postiz)** - Open source social media scheduling tool
 
 ### Library Charts (`charts/common/`)
 

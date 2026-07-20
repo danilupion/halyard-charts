@@ -12,9 +12,11 @@ This is a **Helm chart monorepo** designed for GitOps workflows with Argo CD and
 charts/
 ├── common/              # Library chart with shared Helm template helpers
 ├── apps/                # Application workloads
-│   ├── civicrm/
-│   ├── headscale/
-│   └── mysql/
+│   ├── calcom/
+│   ├── linkwarden/
+│   ├── miniflux/
+│   ├── owncast/
+│   └── postiz/
 ├── ci-cd/              # CI/CD tools and automation
 │   └── actions-runner-deployment/
 └── infra/              # Infrastructure configuration charts
@@ -44,7 +46,7 @@ Reference helpers in templates with `{{ include "common.labels" . }}`
 - **Location**: All charts live under `charts/` subdirectories
 - **Categories**:
   - `common/` - Library chart with shared helpers
-  - `apps/` - Application workloads (CiviCRM, MySQL, Headscale, etc.)
+  - `apps/` - Application workloads (Cal.com, Miniflux, Owncast, Postiz, etc.)
   - `ci-cd/` - CI/CD tools and automation (Actions runners, build tools)
   - `infra/` - Infrastructure configuration (MetalLB, cert-manager, ingress)
 - **Structure**: Each chart contains:

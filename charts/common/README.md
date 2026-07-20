@@ -151,7 +151,7 @@ volumeMounts:
 
 See the following charts for real-world usage:
 
-- [civicrm](../apps/civicrm) - Application chart using most helpers
+- [calcom](../apps/calcom) - Application chart using most helpers
 - [letsencrypt-cloudflare-issuer](../infra/letsencrypt-cloudflare-issuer) - Infrastructure chart using label helpers
 - [metallb-config](../infra/metallb-config) - Infrastructure chart with metadata helpers
 
