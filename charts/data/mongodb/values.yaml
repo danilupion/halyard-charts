@@ -128,7 +128,7 @@ metrics:
   image:
     registry: docker.io
     repository: percona/mongodb_exporter
-    tag: "0.51.0@sha256:852b90b9f38ab489762b8a8b8c074ce852272c2495d725b922bdb5bc7d659e16"
+    tag: "0.52.0@sha256:12bebeed49da6d31d92e6355f5647585cda48848f1e415eba05f077225751a71"
     pullPolicy: IfNotPresent
 
   # Metrics exporter resources
