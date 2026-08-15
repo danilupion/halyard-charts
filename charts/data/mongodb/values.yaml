@@ -27,7 +27,7 @@ auth:
 image:
   registry: docker.io
   repository: mongo
-  tag: "8.3.7@sha256:a7f5aa200005611166adcec0192c2f11d0acc3bfd9d5eb68e1a998a990412e41"
+  tag: "8.3.8@sha256:44dce4b1688969ff3fdbfc438fd6113f734140ad96e3639ef17ee26a162dfb58"
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
