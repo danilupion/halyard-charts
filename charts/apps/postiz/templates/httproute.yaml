@@ -1,0 +1,4 @@
+{{- include "common.httproute" (dict
+      "root" $
+      "route" .Values.postiz.route
+      "port" .Values.postiz.service.port) -}}

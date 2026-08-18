@@ -1,0 +1,29 @@
+{{- if .Values.routePublic.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-public" (include "common.fullname" .)) "root" $) | nindent 2 }}
+  {{- with .Values.routePublic.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- toYaml (.Values.routePublic.parentRefs | required "routePublic.parentRefs is required when routePublic is enabled") | nindent 4 }}
+  {{- with .Values.routePublic.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    # Public surface only: tracking script (all variants) + event ingestion API
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /js/
+        - path:
+            type: Exact
+            value: /api/event
+      backendRefs:
+        - name: {{ include "common.fullname" . }}
+          port: {{ .Values.service.port }}
+{{- end }}

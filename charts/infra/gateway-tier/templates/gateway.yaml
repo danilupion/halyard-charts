@@ -1,0 +1,36 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+  {{- with .Values.gatewayAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.gatewayClassName }}
+  # Bind the LB service shape at the Gateway (not the GatewayClass) so several
+  # tiers can share one controller (supported by Envoy Gateway >= 1.1)
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: {{ include "common.fullname" . }}-proxy-config
+  listeners:
+    {{- if .Values.listeners.http.enabled }}
+    # Serves only the shared HTTP->HTTPS redirect route (same namespace)
+    - name: http
+      protocol: HTTP
+      port: {{ .Values.listeners.http.port }}
+    {{- end }}
+    - name: https
+      protocol: HTTPS
+      port: {{ .Values.listeners.https.port }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: {{ .Values.certificate.secretName | default (printf "%s-tls" (include "common.fullname" .)) }}
+            kind: Secret
+      {{- with .Values.listeners.https.allowedRoutes }}
+      allowedRoutes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

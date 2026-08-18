@@ -2,7 +2,7 @@ apiVersion: v2
 name: mongodb
 description: MongoDB standalone database server
 type: application
-version: 1.0.0
+version: 1.0.1
 appVersion: "8.0"
 keywords:
   - mongodb
@@ -14,5 +14,5 @@ sources:
   - https://github.com/percona/mongodb_exporter
 dependencies:
   - name: common
-    version: 0.1.0
+    version: 0.2.0
     repository: file://../../common

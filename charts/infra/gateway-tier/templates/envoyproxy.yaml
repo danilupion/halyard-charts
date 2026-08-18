@@ -1,0 +1,20 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-proxy-config" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: LoadBalancer
+        {{- with .Values.service.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.service.loadBalancerIP }}
+        loadBalancerIP: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.service.externalTrafficPolicy }}
+        externalTrafficPolicy: {{ . }}
+        {{- end }}

@@ -1,0 +1,26 @@
+postiz:
+  database:
+    existingSecret: ci-postiz
+  redis:
+    existingSecret: ci-postiz
+  jwt:
+    existingSecret: ci-postiz
+  route:
+    enabled: true
+    parentRefs:
+      - name: gateway-private
+        namespace: gateway-private
+    hostnames:
+      - postiz.example.com
+temporal:
+  postgresql:
+    existingSecret: ci-postiz
+  ui:
+    enabled: true
+    route:
+      enabled: true
+      parentRefs:
+        - name: gateway-private
+          namespace: gateway-private
+      hostnames:
+        - temporal.example.com

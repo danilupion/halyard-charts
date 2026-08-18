@@ -263,3 +263,30 @@ externalClickhouse:
   existingSecretKey: password
   # Or provide directly (not recommended)
   password: ""
+
+# HTTPRoute configuration (Gateway API) - the successor to ingress for the
+# Envoy Gateway tiers. ingress: and route: are independent; both may be
+# enabled during a migration window.
+route:
+  enabled: false
+  # Gateway(s) to attach to, e.g.:
+  #   - name: gateway-private
+  #     namespace: gateway-private
+  #     sectionName: https
+  parentRefs: []
+  hostnames: []
+  # Optional full override of spec.rules; default is a single "/" PathPrefix
+  # rule to the chart service
+  rules: []
+  # Optional HTTPRoute annotations (e.g. dns/managed: "false")
+  annotations: {}
+  # Optional rule timeouts, e.g. request: 3600s (long-lived connections)
+  timeouts: {}
+
+# Public HTTPRoute (Gateway API) - successor to ingressPublic: exposes only the
+# tracking script (/js/) and the event ingestion API (/api/event)
+routePublic:
+  enabled: false
+  parentRefs: []
+  hostnames: []
+  annotations: {}

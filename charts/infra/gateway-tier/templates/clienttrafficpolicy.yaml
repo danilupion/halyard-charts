@@ -1,0 +1,14 @@
+{{- if .Values.clientTrafficPolicy.enabled -}}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-client-traffic" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ include "common.fullname" . }}
+  {{- with .Values.clientTrafficPolicy.spec }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}

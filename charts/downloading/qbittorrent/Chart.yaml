@@ -2,7 +2,7 @@ apiVersion: v2
 name: qbittorrent
 description: A Helm chart for qBittorrent - a free and open-source BitTorrent client
 type: application
-version: 1.0.0
+version: 1.1.0
 appVersion: "5.0.4"
 home: https://www.qbittorrent.org/
 sources:
@@ -18,5 +18,5 @@ keywords:
 
 dependencies:
   - name: common
-    version: 0.1.0
+    version: 0.2.0
     repository: file://../../common

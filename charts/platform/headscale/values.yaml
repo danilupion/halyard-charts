@@ -111,6 +111,18 @@ ingress:
   host: ""
   tls: []
 
+# HTTPRoute configuration (Gateway API) - successor to ingress for the Envoy
+# Gateway tiers. ingress and route are independent (both may be enabled during
+# a migration window). Default rules: "/" to headscale, plus "/admin" to the
+# UI when ui.enabled and ui.route is not enabled separately.
+route:
+  enabled: false
+  parentRefs: []
+  hostnames: []
+  rules: []
+  annotations: {}
+  timeouts: {}
+
 # Route monitor - auto-fixes broken route primary assignment
 # Detects ghost nodes and missing primaries, restarts headscale to recover
 # Watchdog for headscale's broken route-primary assignment (issues #2896/#3020):
@@ -272,6 +284,15 @@ ui:
     annotations: {}
     host: ""
     tls: []
+
+  # HTTPRoute configuration (Gateway API) for the UI on a separate hostname
+  route:
+    enabled: false
+    parentRefs: []
+    hostnames: []
+    rules: []
+    annotations: {}
+    timeouts: {}
 
   # Resource limits (Node.js needs more memory)
   resources:

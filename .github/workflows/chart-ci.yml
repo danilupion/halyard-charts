@@ -14,14 +14,32 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5
 
+      - name: Lint library chart
+        run: helm lint --strict charts/common
+
       - name: Lint charts
         run: |
+          set -euo pipefail
           for c in charts/*/*; do
-            [ -f "$c/Chart.yaml" ] && helm lint "$c" || true
+            [ -f "$c/Chart.yaml" ] || continue
+            helm dependency update "$c"
+            helm lint --strict "$c"
           done
 
       - name: Template check (no cluster required)
         run: |
+          set -euo pipefail
           for c in charts/*/*; do
-            [ -f "$c/Chart.yaml" ] && helm template test "$c" || true
+            [ -f "$c/Chart.yaml" ] || continue
+            # ci/default-values.yaml marks charts whose bare defaults cannot
+            # render (required values); every ci/*-values.yaml is rendered
+            if [ ! -f "$c/ci/default-values.yaml" ]; then
+              echo "--- $c (default values)"
+              helm template test "$c" > /dev/null
+            fi
+            for f in "$c"/ci/*-values.yaml; do
+              [ -e "$f" ] || continue
+              echo "--- $c ($f)"
+              helm template test "$c" -f "$f" > /dev/null
+            done
           done

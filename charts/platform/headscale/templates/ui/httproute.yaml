@@ -1,0 +1,8 @@
+{{- if .Values.ui.enabled }}
+{{- include "common.httproute" (dict
+      "root" $
+      "route" .Values.ui.route
+      "name" (printf "%s-ui" (include "common.fullname" .))
+      "serviceName" (printf "%s-ui" (include "common.fullname" .))
+      "port" 3000) -}}
+{{- end }}

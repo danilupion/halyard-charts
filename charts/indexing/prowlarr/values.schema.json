@@ -15,11 +15,19 @@
         },
         "pullPolicy": {
           "type": "string",
-          "enum": ["Always", "IfNotPresent", "Never"],
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ],
           "description": "Image pull policy"
         }
       },
-      "required": ["repository", "tag", "pullPolicy"]
+      "required": [
+        "repository",
+        "tag",
+        "pullPolicy"
+      ]
     },
     "linuxserver": {
       "type": "object",
@@ -39,7 +47,11 @@
           "description": "Timezone (e.g., Europe/Madrid)"
         }
       },
-      "required": ["puid", "pgid", "tz"]
+      "required": [
+        "puid",
+        "pgid",
+        "tz"
+      ]
     },
     "prowlarr": {
       "type": "object",
@@ -51,14 +63,20 @@
           "description": "Prowlarr port"
         }
       },
-      "required": ["port"]
+      "required": [
+        "port"
+      ]
     },
     "service": {
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "enum": [
+            "ClusterIP",
+            "NodePort",
+            "LoadBalancer"
+          ],
           "description": "Service type"
         },
         "port": {
@@ -68,7 +86,10 @@
           "description": "Service port"
         }
       },
-      "required": ["type", "port"]
+      "required": [
+        "type",
+        "port"
+      ]
     },
     "ingress": {
       "type": "object",
@@ -97,7 +118,41 @@
           }
         }
       },
-      "required": ["enabled"]
+      "required": [
+        "enabled"
+      ]
+    },
+    "route": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable Gateway API HTTPRoute"
+        },
+        "parentRefs": {
+          "type": "array",
+          "description": "Gateways to attach to (name/namespace/sectionName)"
+        },
+        "hostnames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Hostnames matched by the route"
+        },
+        "rules": {
+          "type": "array",
+          "description": "Full override of HTTPRoute spec.rules"
+        },
+        "annotations": {
+          "type": "object",
+          "description": "HTTPRoute annotations"
+        },
+        "timeouts": {
+          "type": "object",
+          "description": "Rule timeouts for the default rule"
+        }
+      }
     },
     "persistence": {
       "type": "object",
@@ -112,7 +167,10 @@
             },
             "type": {
               "type": "string",
-              "enum": ["hostPath", "pvc"],
+              "enum": [
+                "hostPath",
+                "pvc"
+              ],
               "description": "Persistence type"
             },
             "hostPath": {
@@ -135,7 +193,11 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
+                "enum": [
+                  "ReadWriteOnce",
+                  "ReadOnlyMany",
+                  "ReadWriteMany"
+                ]
               },
               "description": "PVC access modes"
             },
@@ -145,7 +207,10 @@
               "description": "PVC size"
             }
           },
-          "required": ["enabled", "type"]
+          "required": [
+            "enabled",
+            "type"
+          ]
         }
       }
     },
@@ -166,5 +231,11 @@
       "description": "Readiness probe configuration"
     }
   },
-  "required": ["image", "linuxserver", "prowlarr", "service", "persistence"]
+  "required": [
+    "image",
+    "linuxserver",
+    "prowlarr",
+    "service",
+    "persistence"
+  ]
 }

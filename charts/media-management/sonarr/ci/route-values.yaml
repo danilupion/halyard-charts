@@ -1,0 +1,12 @@
+route:
+  enabled: true
+  parentRefs:
+    - name: gateway-private
+      namespace: gateway-private
+      sectionName: https
+  hostnames:
+    - sonarr.example.com
+  annotations:
+    dns/managed: "false"
+  timeouts:
+    request: 60s

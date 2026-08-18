@@ -1,0 +1,16 @@
+fullnameOverride: gateway-public
+service:
+  annotations:
+    metallb.io/address-pool: gateway-public-pool
+    metallb.io/allow-shared-ip: public-pool
+  externalTrafficPolicy: Cluster
+certificate:
+  dnsNames:
+    - "*.example.com"
+    - example.com
+clientTrafficPolicy:
+  enabled: true
+  spec:
+    clientIPDetection:
+      xForwardedFor:
+        numTrustedHops: 1

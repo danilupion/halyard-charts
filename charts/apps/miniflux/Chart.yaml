@@ -2,7 +2,7 @@ apiVersion: v2
 name: miniflux
 description: Miniflux - minimalist and opinionated feed reader
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "2.2.18"
 keywords:
   - miniflux
@@ -14,5 +14,5 @@ sources:
   - https://github.com/miniflux/v2
 dependencies:
   - name: common
-    version: 0.1.0
+    version: 0.2.0
     repository: file://../../common

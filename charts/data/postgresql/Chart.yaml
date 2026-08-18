@@ -2,7 +2,7 @@ apiVersion: v2
 name: postgresql
 description: PostgreSQL standalone database server
 type: application
-version: 1.0.1
+version: 1.0.2
 appVersion: "18"
 keywords:
   - postgresql
@@ -15,5 +15,5 @@ sources:
   - https://github.com/prometheus-community/postgres_exporter
 dependencies:
   - name: common
-    version: 0.1.0
+    version: 0.2.0
     repository: file://../../common

@@ -1,0 +1,15 @@
+apiVersion: v2
+name: gateway-tier
+description: >-
+  One Gateway API tier served by Envoy Gateway: EnvoyProxy (LB service shape),
+  Gateway, cert-manager wildcard Certificate, shared HTTP->HTTPS redirect route
+  and optional ClientTrafficPolicy
+type: application
+version: 0.1.0
+keywords:
+  - gateway-api
+  - envoy-gateway
+dependencies:
+  - name: common
+    version: 0.2.0
+    repository: file://../../common

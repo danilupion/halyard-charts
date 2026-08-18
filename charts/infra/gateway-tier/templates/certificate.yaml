@@ -1,0 +1,13 @@
+{{- if .Values.certificate.enabled -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-tls" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  secretName: {{ .Values.certificate.secretName | default (printf "%s-tls" (include "common.fullname" .)) }}
+  issuerRef:
+    name: {{ .Values.certificate.issuerRef.name }}
+    kind: {{ .Values.certificate.issuerRef.kind }}
+  dnsNames:
+    {{- toYaml (.Values.certificate.dnsNames | required "certificate.dnsNames is required when certificate.enabled") | nindent 4 }}
+{{- end }}

@@ -1,0 +1,10 @@
+postiz:
+  database:
+    existingSecret: ci-postiz
+  redis:
+    existingSecret: ci-postiz
+  jwt:
+    existingSecret: ci-postiz
+temporal:
+  postgresql:
+    existingSecret: ci-postiz

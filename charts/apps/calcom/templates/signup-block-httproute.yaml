@@ -1,0 +1,39 @@
+{{- if and .Values.route.enabled .Values.calcom.disableSignup }}
+{{- $redirect := .Values.calcom.disableSignupRedirectTo | default (printf "%s/auth/login" (trimSuffix "/" .Values.calcom.webAppUrl)) }}
+{{- $url := urlParse $redirect }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-signup-block" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  parentRefs:
+    {{- toYaml (.Values.route.parentRefs | required "route.parentRefs is required when the route is enabled") | nindent 4 }}
+  {{- with .Values.route.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    # Disable public registration without app or controller changes: redirect the
+    # signup page and API to the login page. The prebuilt calcom/cal.com image
+    # bakes NEXT_PUBLIC_DISABLE_SIGNUP at build time and cannot honor it at
+    # runtime, so we enforce at the edge. Exact matches take precedence over the
+    # main route's "/" PathPrefix per Gateway API route-matching rules.
+    # RequestRedirect only allows 301/302 (the nginx tier used 308).
+    - matches:
+        - path:
+            type: Exact
+            value: /auth/signup
+        - path:
+            type: Exact
+            value: /api/auth/signup
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            {{- with $url.host }}
+            hostname: {{ . }}
+            {{- end }}
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: {{ $url.path | default "/" }}
+            statusCode: 301
+{{- end }}

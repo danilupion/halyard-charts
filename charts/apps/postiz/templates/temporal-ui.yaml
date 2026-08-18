@@ -78,4 +78,13 @@ spec:
           {{- end }}
     {{- end }}
 {{- end }}
+{{- if .Values.temporal.ui.route.enabled }}
+---
+{{- include "common.httproute" (dict
+      "root" $
+      "route" .Values.temporal.ui.route
+      "name" (include "postiz.temporal.ui.fullname" .)
+      "serviceName" (include "postiz.temporal.ui.fullname" .)
+      "port" .Values.temporal.ui.service.port) }}
+{{- end }}
 {{- end }}

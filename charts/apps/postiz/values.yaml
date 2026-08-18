@@ -36,6 +36,17 @@ postiz:
             pathType: Prefix
     tls: []
 
+  # HTTPRoute configuration (Gateway API) - successor to ingress for the Envoy
+  # Gateway tiers. ingress and route are independent (both may be enabled
+  # during a migration window).
+  route:
+    enabled: false
+    parentRefs: []
+    hostnames: []
+    rules: []
+    annotations: {}
+    timeouts: {}
+
   persistence:
     config:
       enabled: true
@@ -218,5 +229,14 @@ temporal:
             - path: /
               pathType: Prefix
       tls: []
+
+    # HTTPRoute configuration (Gateway API) for the Temporal UI
+    route:
+      enabled: false
+      parentRefs: []
+      hostnames: []
+      rules: []
+      annotations: {}
+      timeouts: {}
 
     resources: {}

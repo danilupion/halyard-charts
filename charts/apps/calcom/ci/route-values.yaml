@@ -1,0 +1,9 @@
+calcom:
+  disableSignup: true
+route:
+  enabled: true
+  parentRefs:
+    - name: gateway-public
+      namespace: gateway-public
+  hostnames:
+    - cal.example.com

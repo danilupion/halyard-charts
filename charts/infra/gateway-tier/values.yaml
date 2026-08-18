@@ -1,0 +1,65 @@
+# One release per tier per cluster. Set fullnameOverride to the tier name
+# (e.g. gateway-public) - it names the Gateway, EnvoyProxy, Certificate and
+# redirect route, and is what HTTPRoute parentRefs point at.
+nameOverride: ""
+fullnameOverride: ""
+
+# GatewayClass providing the tier (Envoy Gateway controller)
+gatewayClassName: eg
+
+# Shape of the tier's LoadBalancer Service, applied through the EnvoyProxy
+# resource referenced from Gateway.spec.infrastructure.parametersRef
+service:
+  # e.g.
+  #   metallb.io/address-pool: gateway-public-pool
+  #   metallb.io/allow-shared-ip: public-pool
+  annotations: {}
+  # Optional explicit LB IP (MetalLB also honors the pool annotation)
+  loadBalancerIP: ""
+  # e.g. Cluster (required when sharing a MetalLB IP with another service)
+  externalTrafficPolicy: ""
+
+listeners:
+  # HTTP listener only serves the shared HTTP->HTTPS redirect route
+  http:
+    enabled: true
+    port: 80
+  https:
+    port: 443
+    allowedRoutes:
+      namespaces:
+        from: All
+
+# Extra annotations for the Gateway resource itself
+gatewayAnnotations: {}
+
+# cert-manager certificate terminating TLS for the tier (DNS-01 wildcard/SANs)
+certificate:
+  enabled: true
+  issuerRef:
+    name: letsencrypt-cloudflare
+    kind: ClusterIssuer
+  # Required when certificate.enabled, e.g.:
+  #   - "*.example.com"
+  #   - example.com
+  dnsNames: []
+  # Defaults to <fullname>-tls
+  secretName: ""
+
+# Shared HTTP->HTTPS redirect (replaces per-app force-ssl-redirect annotations)
+redirect:
+  enabled: true
+
+# Client traffic behavior for the tier (XFF trust / client IP detection -
+# replaces nginx use-forwarded-headers / proxy-real-ip-cidr). The map below is
+# rendered under spec: (targetRefs added automatically), e.g.:
+#   clientIPDetection:
+#     xForwardedFor:
+#       numTrustedHops: 1
+clientTrafficPolicy:
+  enabled: false
+  spec: {}
+
+# Common labels/annotations for all resources
+commonLabels: {}
+commonAnnotations: {}

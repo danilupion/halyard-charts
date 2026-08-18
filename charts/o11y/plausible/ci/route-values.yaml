@@ -1,0 +1,16 @@
+route:
+  enabled: true
+  parentRefs:
+    - name: gateway-private
+      namespace: gateway-private
+  hostnames:
+    - plausible.example.com
+  timeouts:
+    request: 3600s
+routePublic:
+  enabled: true
+  parentRefs:
+    - name: gateway-public
+      namespace: gateway-public
+  hostnames:
+    - plausible.example.com

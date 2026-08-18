@@ -1,0 +1,18 @@
+headscale:
+  serverUrl: "https://headscale.example.com"
+route:
+  enabled: true
+  parentRefs:
+    - name: gateway-public
+      namespace: gateway-public
+  hostnames:
+    - headscale.example.com
+ui:
+  enabled: true
+  route:
+    enabled: true
+    parentRefs:
+      - name: gateway-private
+        namespace: gateway-private
+    hostnames:
+      - headplane.example.com

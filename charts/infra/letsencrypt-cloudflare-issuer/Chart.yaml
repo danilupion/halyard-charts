@@ -2,7 +2,7 @@ apiVersion: v2
 name: letsencrypt-cloudflare-issuer
 description: Cert-Manager (Cluster)Issuer(s) backed by Let's Encrypt + Cloudflare DNS-01
 type: application
-version: 1.0.0
+version: 1.0.1
 keywords:
   - cert-manager
   - acme
@@ -10,5 +10,5 @@ keywords:
   - cloudflare
 dependencies:
   - name: common
-    version: 0.1.0
+    version: 0.2.0
     repository: file://../../common
