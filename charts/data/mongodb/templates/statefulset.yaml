@@ -170,14 +170,10 @@ spec:
       {{- end }}
   {{- if .Values.primary.persistence.enabled }}
   volumeClaimTemplates:
+    # metadata carries the name only: volumeClaimTemplates are immutable, so
+    # they must never embed the chart-version label (helm.sh/chart)
     - metadata:
         name: data
-        labels:
-          {{- include "common.labels" $ | nindent 10 }}
-        {{- with .Values.commonAnnotations }}
-        annotations:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
       spec:
         accessModes:
           {{- toYaml .Values.primary.persistence.accessModes | nindent 10 }}
