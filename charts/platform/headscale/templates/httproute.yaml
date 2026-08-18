@@ -18,7 +18,7 @@ spec:
     {{- if .Values.route.rules }}
     {{- toYaml .Values.route.rules | nindent 4 }}
     {{- else }}
-    {{- if and .Values.ui.enabled (not .Values.ui.route.enabled) }}
+    {{- if and .Values.ui.enabled .Values.ui.exposeAdminPath (not .Values.ui.route.enabled) }}
     # Headplane UI mounted under /admin of the main host (more specific prefix
     # wins over "/" per Gateway API route-matching rules)
     - matches:

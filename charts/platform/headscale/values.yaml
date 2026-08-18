@@ -255,6 +255,12 @@ commonAnnotations: {}
 ui:
   enabled: false
 
+  # Mount the UI at /admin of the MAIN headscale ingress/route when the UI has
+  # no exposure of its own. Disable when the UI is published elsewhere (e.g. an
+  # admin gateway) so the admin panel does not ride the public hostname.
+  exposeAdminPath: true
+
+
   image:
     repository: ghcr.io/tale/headplane
     tag: "0.7.0@sha256:7bd6523a14567a43eb4ffa1e95e3d95456b8539c9d081757df3f228b9e836fb5"
