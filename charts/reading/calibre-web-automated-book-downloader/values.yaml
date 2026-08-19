@@ -11,7 +11,7 @@ fullnameOverride: ""
 # Renovate (docker datasource, digest pinning) tracks the `latest` digest.
 image:
   repository: ghcr.io/calibrain/calibre-web-automated-book-downloader
-  tag: "latest@sha256:bd314405a9ca1eb176d1618c38f19948a1feb18ec4190a7665d3096163eab0a4"
+  tag: "latest@sha256:33955508fedbda5aaedc5f6f6d0451c4cda73d3fc4707058c350ee30e5539bb3"
   pullPolicy: IfNotPresent
 
 # LinuxServer-style container settings (PUID/PGID/TZ supported)
