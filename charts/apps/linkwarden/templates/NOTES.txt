@@ -1,9 +1,9 @@
 Linkwarden has been deployed!
 
-{{- if .Values.ingress.enabled }}
+{{- if .Values.route.enabled }}
 Access Linkwarden at:
-{{- range .Values.ingress.hosts }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- range .Values.route.hostnames }}
+  https://{{ . }}
 {{- end }}
 {{- else }}
 Get the application URL by running:

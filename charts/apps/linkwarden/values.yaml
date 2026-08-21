@@ -27,22 +27,6 @@ service:
   port: 3000
   annotations: {}
 
-# Ingress configuration for external access
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: linkwarden.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-    # - secretName: linkwarden-tls
-    #   hosts:
-    #     - linkwarden.example.com
-
 # Persistent storage for archived web pages and data
 persistence:
   enabled: true

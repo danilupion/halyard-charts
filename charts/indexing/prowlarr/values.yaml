@@ -22,14 +22,6 @@ service:
   type: ClusterIP
   port: 9696
 
-# Ingress configuration
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts: []
-  tls: []
-
 # Persistence for config
 persistence:
   config:

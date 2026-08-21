@@ -2,7 +2,7 @@ apiVersion: v2
 name: calcom
 description: Cal.com - the open-source Calendly alternative (scheduling infrastructure)
 type: application
-version: 0.2.0
+version: 1.0.0
 appVersion: v6.2.0
 keywords:
   - calcom

@@ -44,40 +44,6 @@ spec:
       port: {{ .Values.temporal.ui.service.port }}
       targetPort: http
       protocol: TCP
-{{- if .Values.temporal.ui.ingress.enabled }}
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  {{- include "common.metadata" (dict "name" (include "postiz.temporal.ui.fullname" .) "root" $) | nindent 2 }}
-  {{- with .Values.temporal.ui.ingress.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-spec:
-  {{- with .Values.temporal.ui.ingress.className }}
-  ingressClassName: {{ . }}
-  {{- end }}
-  {{- with .Values.temporal.ui.ingress.tls }}
-  tls:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  rules:
-    {{- range .Values.temporal.ui.ingress.hosts }}
-    - host: {{ .host | quote }}
-      http:
-        paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
-            backend:
-              service:
-                name: {{ include "postiz.temporal.ui.fullname" $ }}
-                port:
-                  name: http
-          {{- end }}
-    {{- end }}
-{{- end }}
 {{- if .Values.temporal.ui.route.enabled }}
 ---
 {{- include "common.httproute" (dict

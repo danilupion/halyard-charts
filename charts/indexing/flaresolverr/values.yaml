@@ -47,14 +47,6 @@ service:
   port: 8191
   annotations: {}
 
-# Ingress configuration (usually not needed - internal service)
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  host: ""
-  tls: []
-
 # Resource limits and requests
 resources: {}
   # limits:

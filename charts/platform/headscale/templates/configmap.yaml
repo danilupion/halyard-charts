@@ -61,7 +61,7 @@ data:
         conn_max_idle_time_secs: 3600
       {{- end }}
 
-    # Disable TLS (handled by ingress)
+    # Disable TLS (terminated by the gateway)
     tls_cert_path: ""
     tls_key_path: ""
 

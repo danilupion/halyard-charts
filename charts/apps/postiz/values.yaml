@@ -25,20 +25,7 @@ postiz:
     port: 5000
     annotations: {}
 
-  ingress:
-    enabled: false
-    className: ""
-    annotations: {}
-    hosts:
-      - host: postiz.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls: []
-
-  # HTTPRoute configuration (Gateway API) - successor to ingress for the Envoy
-  # Gateway tiers. ingress and route are independent (both may be enabled
-  # during a migration window).
+  # HTTPRoute configuration (Gateway API)
   route:
     enabled: false
     parentRefs: []
@@ -218,17 +205,6 @@ temporal:
     service:
       type: ClusterIP
       port: 8080
-
-    ingress:
-      enabled: false
-      className: ""
-      annotations: {}
-      hosts:
-        - host: temporal.example.com
-          paths:
-            - path: /
-              pathType: Prefix
-      tls: []
 
     # HTTPRoute configuration (Gateway API) for the Temporal UI
     route:

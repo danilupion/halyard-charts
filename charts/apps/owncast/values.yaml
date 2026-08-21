@@ -42,22 +42,6 @@ rtmpService:
   annotations: {}
     # metallb.io/address-pool: private-pool
 
-# Ingress configuration for the HTTP service
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: owncast.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-    # - secretName: owncast-tls
-    #   hosts:
-    #     - owncast.example.com
-
 # Persistent storage for SQLite state, HLS segments, chat history, uploads
 persistence:
   enabled: true

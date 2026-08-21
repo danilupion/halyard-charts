@@ -2,7 +2,7 @@ apiVersion: v2
 name: linkwarden
 description: Linkwarden - self-hosted collaborative bookmark manager
 type: application
-version: 0.2.0
+version: 1.0.0
 appVersion: v2.14.0
 keywords:
   - linkwarden

@@ -2,7 +2,7 @@ apiVersion: v2
 name: tautulli
 description: Tautulli - Plex Media Server monitoring and statistics
 type: application
-version: 0.2.0
+version: 1.0.0
 appVersion: "2.14.6"
 
 dependencies:

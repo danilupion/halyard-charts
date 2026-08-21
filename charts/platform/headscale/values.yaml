@@ -103,14 +103,6 @@ service:
     grpc: 50443
     metrics: 9090
 
-# Ingress configuration
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  host: ""
-  tls: []
-
 # HTTPRoute configuration (Gateway API) - successor to ingress for the Envoy
 # Gateway tiers. ingress and route are independent (both may be enabled during
 # a migration window). Default rules: "/" to headscale, plus "/admin" to the
@@ -282,14 +274,6 @@ ui:
     enabled: false
     storageClass: ""
     size: 100Mi
-
-  # Ingress configuration for UI (separate domain)
-  ingress:
-    enabled: false
-    className: ""
-    annotations: {}
-    host: ""
-    tls: []
 
   # HTTPRoute configuration (Gateway API) for the UI on a separate hostname
   route:

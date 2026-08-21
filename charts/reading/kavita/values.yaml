@@ -26,14 +26,6 @@ service:
   type: ClusterIP
   port: 5000
 
-# Ingress configuration
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts: []
-  tls: []
-
 # Config persistence
 persistence:
   config:

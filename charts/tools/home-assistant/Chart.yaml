@@ -2,7 +2,7 @@ apiVersion: v2
 name: home-assistant
 description: Home Assistant - Open source home automation
 type: application
-version: 0.2.0
+version: 1.0.0
 appVersion: "2025.1.0"
 
 dependencies:

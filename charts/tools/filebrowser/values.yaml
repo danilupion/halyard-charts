@@ -20,14 +20,6 @@ service:
   type: ClusterIP
   port: 8080
 
-# Ingress configuration
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts: []
-  tls: []
-
 # Persistence
 persistence:
   # Database storage

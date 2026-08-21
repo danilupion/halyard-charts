@@ -2,7 +2,7 @@ apiVersion: v2
 name: postiz
 description: Postiz - open source social media scheduling tool, bundled with the Temporal workflow stack
 type: application
-version: 0.2.0
+version: 1.0.0
 appVersion: v2.21.7
 keywords:
   - postiz

@@ -1,9 +1,9 @@
 Cal.com has been deployed!
 
-{{- if .Values.ingress.enabled }}
+{{- if .Values.route.enabled }}
 Access Cal.com at:
-{{- range .Values.ingress.hosts }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- range .Values.route.hostnames }}
+  https://{{ . }}
 {{- end }}
 {{- else }}
 Get the application URL by running:

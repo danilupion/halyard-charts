@@ -29,22 +29,6 @@ service:
   port: 3000
   annotations: {}
 
-# Ingress configuration for external access
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: calcom.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-    # - secretName: calcom-tls
-    #   hosts:
-    #     - calcom.example.com
-
 # Database configuration (external PostgreSQL required).
 # Cal.com's Prisma schema references BOTH DATABASE_URL and DATABASE_DIRECT_URL;
 # when no connection pooler is in front of Postgres, set them to the same value.
@@ -99,11 +83,9 @@ calcom:
   telemetryDisabled: true
   # Block public registration. The prebuilt calcom/cal.com image bakes
   # NEXT_PUBLIC_DISABLE_SIGNUP at build time and cannot honor it at runtime, so
-  # when true (and ingress.enabled) the chart renders a second, redirect-only
-  # Ingress that sends /auth/signup and /api/auth/signup to the login page.
-  # This uses a plain ingress-nginx permanent-redirect — no server snippets and
-  # no controller changes. First-admin /auth/setup and /api/auth/[...nextauth]
-  # login are unaffected.
+  # when true (and route.enabled) the chart renders a second, redirect-only
+  # HTTPRoute that 301s /auth/signup and /api/auth/signup to the login page.
+  # First-admin /auth/setup and /api/auth/[...nextauth] login are unaffected.
   disableSignup: false
   # Target for blocked signup requests when disableSignup is true.
   # Empty -> "<webAppUrl>/auth/login".

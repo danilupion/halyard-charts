@@ -2,7 +2,7 @@ apiVersion: v2
 name: dash
 description: Dashdot - Modern server dashboard for smaller servers
 type: application
-version: 0.2.0
+version: 1.0.0
 appVersion: "5.8.3"
 
 dependencies:

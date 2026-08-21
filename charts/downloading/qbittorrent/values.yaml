@@ -55,14 +55,6 @@ torrentService:
   udpEnabled: true
   annotations: {}
 
-# Ingress configuration
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  host: ""
-  tls: []
-
 # Application config storage (always mounted at /config)
 persistence:
   enabled: true

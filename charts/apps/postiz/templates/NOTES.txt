@@ -4,15 +4,15 @@ Application:     {{ include "common.fullname" . }}
 Namespace:       {{ .Release.Namespace }}
 Postiz image:    {{ .Values.postiz.image.repository }}:{{ .Values.postiz.image.tag }}
 
-{{- if .Values.postiz.ingress.enabled }}
+{{- if .Values.postiz.route.enabled }}
 
 URL:
-{{- range .Values.postiz.ingress.hosts }}
-  https://{{ .host }}
+{{- range .Values.postiz.route.hostnames }}
+  https://{{ . }}
 {{- end }}
 {{- else }}
 
-Ingress is disabled. Port-forward to reach the UI:
+No route enabled. Port-forward to reach the UI:
   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "common.fullname" . }} 5000:{{ .Values.postiz.service.port }}
 {{- end }}
 
