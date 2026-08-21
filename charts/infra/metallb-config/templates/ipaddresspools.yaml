@@ -18,11 +18,12 @@ spec:
     {{- range $pool.addresses }}
     - {{ . | quote }}
     {{- end }}
-  {{- with $pool.autoAssign }}
-  autoAssign: {{ . }}
+  {{- /* hasKey, not `with`: these are booleans and `with` swallows false */}}
+  {{- if hasKey $pool "autoAssign" }}
+  autoAssign: {{ $pool.autoAssign }}
   {{- end }}
-  {{- with $pool.avoidBuggyIPs }}
-  avoidBuggyIPs: {{ . }}
+  {{- if hasKey $pool "avoidBuggyIPs" }}
+  avoidBuggyIPs: {{ $pool.avoidBuggyIPs }}
   {{- end }}
   {{- with $pool.serviceAllocation }}
   serviceAllocation:
