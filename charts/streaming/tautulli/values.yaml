@@ -8,7 +8,7 @@ fullnameOverride: ""
 # Image configuration
 image:
   repository: lscr.io/linuxserver/tautulli
-  tag: "2.17.2@sha256:9ec965ca644601727504d96332e267f29b85d8778351bba87c14e3733801ed1d"
+  tag: "2.18.0@sha256:05cb00b7aaaee15d7d72b1efa4c271b057e88c4496f654e6774291b99920ed06"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
