@@ -192,7 +192,7 @@ clickhouse:
   # Official ClickHouse image (receives regular security updates)
   image:
     repository: clickhouse/clickhouse-server
-    tag: "26.8-alpine@sha256:91f21d5996c6ecbd29570b01912cc3dd1e46eade94160e55c4fe3d743d408e9e"
+    tag: "26.8-alpine@sha256:3f9ab42071a1845b336160952a5d466144a52c9b5ac55fcb69c1bc8e1c2ef904"
     pullPolicy: IfNotPresent
   # Database name for Plausible events
   database: plausible_events
