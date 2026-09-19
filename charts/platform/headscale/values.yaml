@@ -139,7 +139,7 @@ routeMonitor:
   schedule: "*/2 * * * *"
   image:
     repository: bitnami/kubectl
-    tag: latest@sha256:b29d8c1665b70817259ceecaea16ab27aab6368b48daf485d19436c809067492
+    tag: latest@sha256:6e9c5284a0dac06e84de9f4d97852d2e6513442ee7ec3a66d35009eec86e1e62
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -201,7 +201,7 @@ subnetRouter:
   # Tailscale client image
   image:
     repository: tailscale/tailscale
-    tag: stable@sha256:8c42c4574ab066384fcb72f69e086a2ff1dd3652eb6f56856cee34bcf0d2f680
+    tag: stable@sha256:2667499ed87ae29218f292556ba062918402dd5e92e93637af14867e4df12dd3
     pullPolicy: IfNotPresent
 
   # Resource limits for subnet router
