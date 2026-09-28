@@ -36,6 +36,10 @@ spec:
             {{- include "common.env" (dict "name" "ES_SEEDS" "value" (include "postiz.temporal.elasticsearch.fullname" .)) | nindent 12 }}
             {{- include "common.env" (dict "name" "ES_VERSION" "value" "v7") | nindent 12 }}
             {{- include "common.env" (dict "name" "TEMPORAL_NAMESPACE" "value" .Values.temporal.server.namespace) | nindent 12 }}
+          {{- with .Values.temporal.server.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.temporal.server.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

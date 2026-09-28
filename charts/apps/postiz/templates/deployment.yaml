@@ -13,6 +13,13 @@ spec:
     metadata:
       labels:
         {{- include "common.selectorLabels" (dict "root" $ "component" "postiz") | nindent 8 }}
+      {{- if .Values.temporal.enabled }}
+      # Roll Postiz whenever the Temporal stack is upgraded: the orchestrator's
+      # pollers may not survive a Temporal restart. startupProbe covers the
+      # boot race of both restarting together.
+      annotations:
+        checksum/temporal-stack: {{ list .Values.temporal.server .Values.temporal.postgresql.image .Values.temporal.elasticsearch.image | toJson | sha256sum }}
+      {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -41,6 +48,11 @@ spec:
           ports:
             - name: http
               containerPort: 5000
+              protocol: TCP
+            # Orchestrator (Temporal worker) health endpoint, only bound once
+            # the workers finished booting. Probed, never exposed via Service.
+            - name: orchestrator
+              containerPort: 3002
               protocol: TCP
           env:
             {{- include "common.env" (dict "name" "MAIN_URL" "value" .Values.postiz.urls.main) | nindent 12 }}
@@ -76,6 +88,10 @@ spec:
             {{- if .Values.postiz.persistence.uploads.enabled }}
             {{- include "common.volumeMount" (dict "name" "uploads" "mountPath" .Values.postiz.storage.uploadDirectory) | nindent 12 }}
             {{- end }}
+          {{- with .Values.postiz.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.postiz.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

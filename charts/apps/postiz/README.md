@@ -11,6 +11,7 @@ Temporal stack (server + dedicated Postgres + Elasticsearch visibility store).
 | `postiz-temporal` Deployment       | Temporal server (auto-setup image)         |
 | `postiz-temporal-postgresql` STS   | Dedicated Postgres for Temporal persistence|
 | `postiz-temporal-elasticsearch` STS| ES 7.x visibility store for Temporal       |
+| `postiz-worker-watchdog` CronJob   | Restarts Postiz when no worker polls Temporal |
 
 Postiz uses the shared cluster Postgres / Redis for its own data — only the
 Temporal stack is bundled in this chart.
@@ -33,7 +34,36 @@ shows the post payload being created but no Temporal workflow activity afterward
 **Cause**: The orchestrator's Temporal workers can lose their connection to the
 Temporal server (e.g., after Temporal/Elasticsearch is restarted) without
 crashing the Node process. PM2 sees the process as healthy and doesn't restart
-it, so workflow tasks pile up in queues with no worker polling them.
+it, so workflow tasks pile up in queues with no worker polling them. The most
+common trigger is a node reboot or upgrade: the orchestrator boots while
+Temporal is still recovering (`shard status unknown`) and hangs before its
+health endpoint on port 3002 ever starts listening.
+
+**Auto-remediation (chart 1.1.0+)**: `startupProbe` and `livenessProbe` target
+the orchestrator's `/health/status` on port 3002 (`orchestrator` container
+port), which only listens once the workers are up and returns 500 when
+Temporal is unreachable. A hung boot restarts the pod after ~5 min; a lost
+Temporal connection after ~2 min. The Temporal server has a readiness probe
+(`temporal operator cluster health`) so its Service only receives traffic once
+it is serving.
+
+The probes only prove the Temporal server answers a *fresh* connection, not that
+the orchestrator's own pollers are still attached, so two more layers cover a
+worker that silently drops after Postiz finished booting:
+
+- **Temporal upgrades roll Postiz**: a `checksum/temporal-stack` pod annotation
+  (Temporal server config + Postgres/Elasticsearch images) restarts Postiz
+  together with any Temporal-stack change made through this chart.
+- **`workerWatchdog` CronJob** (every 5 min): runs
+  `temporal task-queue describe --task-queue main`; if no worker polls it and
+  the Postiz pod is older than `minPodAgeSeconds` (600), it runs
+  `kubectl rollout restart` on the Postiz Deployment. Covers Temporal or
+  Elasticsearch restarts outside a chart change. Its logs show every decision:
+  `kubectl -n postiz logs job/<latest postiz-worker-watchdog job>`.
+
+Worst case a stalled worker is detected ~10 min after it stops polling (poller
+expiry + schedule). Restarting releases every backlogged workflow at once, so
+posts whose time passed during the stall publish late rather than never.
 
 **Verification**: List active Temporal workflows. Stuck posts show as `Running`
 indefinitely with only `WorkflowExecutionStarted` + `WorkflowTaskScheduled`
@@ -44,7 +74,8 @@ kubectl -n postiz exec deploy/postiz-temporal -- \
   temporal workflow list --address postiz-temporal:7233 --namespace default
 ```
 
-**Fix**: Restart the orchestrator process inside the Postiz pod. This
+**Manual fix** (if the probes/watchdog are disabled or have not fired yet): restart the
+orchestrator process inside the Postiz pod. This
 re-registers all per-provider workers (`main`, `x`, `linkedin`, …) and resumes
 the stuck workflows automatically:
 

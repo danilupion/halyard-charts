@@ -97,14 +97,30 @@ postiz:
   podSecurityContext: {}
   securityContext: {}
 
+  # Startup + liveness watch the orchestrator (Temporal worker), not the UI.
+  # Its /health/status (port 3002) only listens once the workers finished
+  # booting and returns 500 when Temporal is unreachable (10s internal
+  # timeout). Without this, an orchestrator that boots while Temporal is still
+  # recovering (node reboot, upgrade, Temporal restart) hangs forever while
+  # pm2 reports it online, and scheduled posts silently never publish.
+  # Startup: up to 5 min to boot, then the pod is restarted.
+  startupProbe:
+    httpGet:
+      path: /health/status
+      port: orchestrator
+    periodSeconds: 10
+    timeoutSeconds: 12
+    failureThreshold: 30
+
+  # Liveness: ~2 min without a reachable Temporal restarts the pod so the
+  # workers reconnect fresh. The UI is covered by readinessProbe only.
   livenessProbe:
     httpGet:
-      path: /
-      port: http
-    initialDelaySeconds: 60
+      path: /health/status
+      port: orchestrator
     periodSeconds: 30
-    timeoutSeconds: 5
-    failureThreshold: 6
+    timeoutSeconds: 12
+    failureThreshold: 4
 
   readinessProbe:
     httpGet:
@@ -118,6 +134,32 @@ postiz:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+
+# ---------------------------------------------------------------------------
+# Worker watchdog: CronJob that restarts Postiz when no orchestrator worker
+# polls the Temporal task queue (worker silently gone while the pod looks
+# healthy). Needs temporal.enabled. The Temporal CLI check runs in an init
+# container from temporal.server.image; RBAC is read pods + patch the Postiz
+# Deployment only.
+# ---------------------------------------------------------------------------
+workerWatchdog:
+  enabled: true
+  schedule: "*/5 * * * *"
+  # Postiz's main workflow queue; every orchestrator registers a poller on it.
+  taskQueue: main
+  # Leave younger pods to the startupProbe (5 min) instead of restarting them.
+  minPodAgeSeconds: 600
+  image:
+    repository: bitnami/kubectl
+    tag: latest@sha256:b29d8c1665b70817259ceecaea16ab27aab6368b48daf485d19436c809067492
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
 
 # ---------------------------------------------------------------------------
 # Temporal stack (server + dedicated postgres + elasticsearch + optional UI)
@@ -138,6 +180,18 @@ temporal:
       port: 7233
 
     namespace: default
+
+    # Keep the Service endpoint-less until the frontend reports SERVING, so
+    # Postiz does not connect to a Temporal that is still recovering.
+    readinessProbe:
+      exec:
+        command:
+          - sh
+          - -c
+          - temporal operator cluster health --address "$(hostname -i):7233"
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
 
     resources: {}
 
