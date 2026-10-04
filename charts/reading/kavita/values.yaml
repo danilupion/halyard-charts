@@ -8,7 +8,7 @@ fullnameOverride: ""
 # Image configuration
 image:
   repository: lscr.io/linuxserver/kavita
-  tag: "0.9.1@sha256:cf2a67b0eec795c8f94cfa27c2fba4c347d25deba5f15acffa24cb5a1115ffa8"
+  tag: "0.9.1@sha256:6c5dc34fe5a0d8615d530aa24f550cbbf9304ab4b352f7f9fa6133510b93e6bf"
   pullPolicy: IfNotPresent
 
 # LinuxServer container settings
