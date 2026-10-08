@@ -1,4 +1,32 @@
 {{- if .Values.databases }}
+{{- /*
+  Validate databases[].extraRoles up front. Role names are cluster-wide in PostgreSQL, so an
+  extra role must not collide with the superuser, any database owner, or another extra role:
+  the provisioning script ALTERs extra roles to NOSUPERUSER/NOBYPASSRLS on every sync.
+*/}}
+{{- $owners := list .Values.auth.username }}
+{{- range .Values.databases }}
+{{- $owners = append $owners .user }}
+{{- end }}
+{{- $seenRoles := dict }}
+{{- range $db := .Values.databases }}
+{{- range $db.extraRoles }}
+{{- if not (regexMatch "^[a-z_][a-z0-9_]{0,62}$" (toString .name)) }}
+{{- $msg := "invalid role name %q (lowercase letters, digits and underscores only)" }}
+{{- fail (printf (printf "databases[%%s].extraRoles: %s" $msg) $db.name (toString .name)) }}
+{{- end }}
+{{- if has .name $owners }}
+{{- fail (printf "databases[%s].extraRoles: %q is the superuser or a database owner" $db.name .name) }}
+{{- end }}
+{{- if hasKey $seenRoles .name }}
+{{- fail (printf "databases[%s].extraRoles: role %q is declared more than once" $db.name .name) }}
+{{- end }}
+{{- $_ := set $seenRoles .name true }}
+{{- if or (not .passwordSecret) (not .passwordSecretKey) }}
+{{- fail (printf "databases[%s].extraRoles[%s]: passwordSecret and passwordSecretKey are required" $db.name .name) }}
+{{- end }}
+{{- end }}
+{{- end }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -49,12 +77,19 @@ spec:
                 secretKeyRef:
                   name: {{ .passwordSecret }}
                   key: {{ .passwordSecretKey }}
+            {{- range .extraRoles }}
+            - name: {{ printf "ROLE_PASSWORD_%s" (.name | upper) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .passwordSecret }}
+                  key: {{ .passwordSecretKey }}
+            {{- end }}
             {{- end }}
           command:
             - sh
             - -ce
             - |
-              {{- range .Values.databases }}
+              {{- range $db := .Values.databases }}
 
               DB_PASS="${DB_PASSWORD_{{ .name | upper | replace "-" "_" }}}"
 
@@ -70,6 +105,29 @@ spec:
 
               psql -tc "SELECT 1 FROM pg_database WHERE datname = '{{ .name }}'" | grep -q 1 \
                 || psql -c "CREATE DATABASE {{ .name }} OWNER {{ .user }}"
+              {{- range .extraRoles }}
+
+              # Extra login role: never superuser, never owner, cannot bypass RLS.
+              # Values go through psql variables (:'var'), so passwords need no escaping.
+              echo "Provisioning extra role '{{ .name }}' for database '{{ $db.name }}'..."
+              psql -v ON_ERROR_STOP=1 -v role={{ .name | quote }} -v db={{ $db.name | quote }} \
+                -v pass="${ROLE_PASSWORD_{{ .name | upper }}}" <<'SQL'
+              SELECT format('DO $guard$ BEGIN RAISE EXCEPTION %L; END $guard$',
+                       'refusing to manage role ' || r.rolname || ': it is a superuser or owns a database')
+                FROM pg_roles r
+               WHERE r.rolname = :'role'
+                 AND (r.rolsuper OR EXISTS (SELECT 1 FROM pg_database d WHERE d.datdba = r.oid))
+              \gexec
+              SELECT format('CREATE ROLE %I', :'role')
+               WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role')
+              \gexec
+              SELECT format('ALTER ROLE %I WITH LOGIN PASSWORD %L NOSUPERUSER NOCREATEDB NOCREATEROLE '
+                            'NOREPLICATION NOBYPASSRLS', :'role', :'pass')
+              \gexec
+              SELECT format('GRANT CONNECT ON DATABASE %I TO %I', :'db', :'role')
+              \gexec
+              SQL
+              {{- end }}
               {{- end }}
 
               echo "Provisioning complete."

@@ -153,12 +153,20 @@ metrics:
 # Database provisioning
 # Creates users and databases on every ArgoCD sync (idempotent)
 # Passwords are read from secrets in the postgresql namespace
+# `user` becomes the database OWNER. Owners bypass row-level security, so apps that rely on RLS
+# should connect with `extraRoles`: LOGIN roles that own nothing and are forced to
+# NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS, with CONNECT on the database.
+# The owner (e.g. a migration job) grants them table privileges. Role names are cluster-wide.
 # Example:
 #   databases:
 #     - name: myapp
 #       user: myapp
 #       passwordSecret: postgresql-credentials
 #       passwordSecretKey: MYAPP_PASSWORD
+#       extraRoles:                       # optional
+#         - name: myapp_web
+#           passwordSecret: postgresql-credentials
+#           passwordSecretKey: MYAPP_WEB_PASSWORD
 databases: []
 
 # Node selector for pod assignment

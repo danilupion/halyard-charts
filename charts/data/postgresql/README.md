@@ -1,6 +1,6 @@
 # postgresql
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square)
+![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square)
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 ![AppVersion: 18](https://img.shields.io/badge/AppVersion-18-informational?style=flat-square)
 
@@ -68,6 +68,42 @@ helm install my-postgresql ./charts/data/postgresql \
 | `service.port`                    | PostgreSQL service port                 | `5432`      |
 
 See `values.yaml` for the complete list of configurable values.
+
+## Database Provisioning
+
+`databases` creates a login role and a database it owns, on every Argo CD sync (a PostSync Job, idempotent).
+Passwords come from secrets in the release namespace.
+
+```yaml
+databases:
+  - name: myapp
+    user: myapp                  # becomes the database OWNER
+    passwordSecret: myapp-db-credentials
+    passwordSecretKey: MYAPP_PASSWORD
+    extraRoles:                  # optional, since 1.1.0
+      - name: myapp_web
+        passwordSecret: myapp-db-credentials
+        passwordSecretKey: MYAPP_WEB_PASSWORD
+```
+
+### Extra roles
+
+A table owner bypasses row-level security and can disable policies and triggers. Apps that rely on RLS should
+connect with **extra roles** instead: login roles that own nothing. On every sync each extra role is:
+
+- created if missing, and its password set from its secret (passed as a psql variable, so any characters work);
+- forced to `NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`;
+- granted `CONNECT` on its database.
+
+Table and schema privileges are **not** granted by the chart: the owner grants them (typically in the app's
+migrations).
+
+Safety checks:
+
+- At render time, names must match `^[a-z_][a-z0-9_]{0,62}$`. They must not equal `auth.username` or any
+  database `user`, and must be unique across all databases (PostgreSQL roles are cluster-wide). Both secret
+  fields are required.
+- At run time, the job fails instead of modifying an existing role that is a superuser or owns a database.
 
 ## Custom PostgreSQL Configuration
 

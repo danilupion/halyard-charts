@@ -1,0 +1,18 @@
+auth:
+  existingSecret: ci-auth
+databases:
+  - name: app
+    user: app
+    passwordSecret: app-db-credentials
+    passwordSecretKey: APP_PASSWORD
+    extraRoles:
+      - name: app_web
+        passwordSecret: app-db-credentials
+        passwordSecretKey: APP_WEB_PASSWORD
+      - name: app_admin
+        passwordSecret: app-db-credentials
+        passwordSecretKey: APP_ADMIN_PASSWORD
+  - name: other
+    user: other
+    passwordSecret: other-db-credentials
+    passwordSecretKey: OTHER_PASSWORD
