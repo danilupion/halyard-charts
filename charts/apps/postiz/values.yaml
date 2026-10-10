@@ -151,7 +151,7 @@ workerWatchdog:
   minPodAgeSeconds: 600
   image:
     repository: bitnami/kubectl
-    tag: latest@sha256:b29d8c1665b70817259ceecaea16ab27aab6368b48daf485d19436c809067492
+    tag: latest@sha256:999d5eb28f404b45f15117f2a110ff23c6164f76edac261d75d783b6e88252b7
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -204,7 +204,7 @@ temporal:
     image:
       registry: docker.io
       repository: postgres
-      tag: "18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
+      tag: "18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873"
       pullPolicy: IfNotPresent
 
     # Credentials are pulled from an existing secret (POSTGRES_USER / POSTGRES_PASSWORD keys).
