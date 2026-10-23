@@ -255,7 +255,7 @@ ui:
 
   image:
     repository: ghcr.io/tale/headplane
-    tag: "0.8.1@sha256:2cc960b89fad90ead5151a2e6ab025dbf63c3b2a3dfe33af9183eae45b611261"
+    tag: "0.8.2@sha256:b053a0a6699d0a67be3f0d9bae8e7dbe35ed67ae8448412adcbad7ea49866faa"
     pullPolicy: IfNotPresent
 
   # Cookie secret for session encryption (32 characters)
