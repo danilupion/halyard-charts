@@ -46,6 +46,10 @@ spec:
             - name: TS_HOSTNAME
               value: {{ .Values.subnetRouter.hostname | quote }}
             {{- end }}
+            {{- if .Values.subnetRouter.firewallMode }}
+            - name: TS_DEBUG_FIREWALL_MODE
+              value: {{ .Values.subnetRouter.firewallMode | quote }}
+            {{- end }}
             - name: TS_EXTRA_ARGS
               value: "--login-server={{ .Values.headscale.serverUrl }}{{- if .Values.subnetRouter.advertiseExitNode }} --advertise-exit-node{{- end }} --accept-routes=false"
           {{- if .Values.subnetRouter.livenessProbe.enabled }}

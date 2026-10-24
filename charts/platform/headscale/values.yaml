@@ -178,6 +178,13 @@ subnetRouter:
   # Advertise as exit node (routes all internet traffic through this node)
   advertiseExitNode: false
 
+  # Netfilter backend for tailscaled's forwarding/SNAT rules (TS_DEBUG_FIREWALL_MODE):
+  # "iptables", "nftables" or "auto". Empty keeps tailscaled's default, which is
+  # legacy iptables. Set "nftables" on nftables-only hosts (e.g. Ubuntu 26.04 /
+  # kernel 7.0, which no longer loads ip_tables): the pod cannot modprobe it, so
+  # legacy mode fails to create its rules and clients get no LAN access.
+  firewallMode: ""
+
   # Pre-auth key for the subnet router
   # Create with: headscale preauthkeys create --user admin --reusable --expiration 365d
   authKey: ""

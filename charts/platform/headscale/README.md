@@ -81,6 +81,7 @@ helm install headscale ./headscale \
 | `subnetRouter.authKey` | Pre-auth key | `""` |
 | `subnetRouter.existingSecret` | Existing secret with auth key | `""` |
 | `subnetRouter.existingSecretKey` | Key in existing secret | `auth-key` |
+| `subnetRouter.firewallMode` | Netfilter backend (`iptables`, `nftables`, `auto`); empty = tailscaled default | `""` |
 
 ## Usage
 
