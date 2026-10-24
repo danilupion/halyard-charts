@@ -141,13 +141,18 @@ routeMonitor:
     repository: bitnami/kubectl
     tag: latest@sha256:b29d8c1665b70817259ceecaea16ab27aab6368b48daf485d19436c809067492
     pullPolicy: IfNotPresent
+  # Kill a run that hangs. With concurrencyPolicy Forbid, a stuck job (e.g. a pod
+  # that never leaves Pending) otherwise blocks every later run indefinitely.
+  activeDeadlineSeconds: 300
+  # kubectl's working set grows with the cluster's API discovery: at a 64Mi limit
+  # it thrashed re-reading its own binary on a CRD-heavy cluster (~2 min per call).
   resources:
     requests:
       cpu: 10m
-      memory: 32Mi
-    limits:
-      cpu: 100m
       memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
 
 # Subnet router configuration
 subnetRouter:

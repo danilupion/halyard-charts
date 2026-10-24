@@ -11,6 +11,9 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 0
+      {{- with .Values.routeMonitor.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ . }}
+      {{- end }}
       template:
         metadata:
           labels:
