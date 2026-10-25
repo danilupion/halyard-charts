@@ -1,12 +1,9 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:best-practices"],
-  // Supply-chain delay: only take releases that are at least 3 days old.
-  minimumReleaseAge: '3 days',
-  internalChecksFilter: 'strict',
-  // Security fixes bypass minimumReleaseAge and are raised immediately; OSV
-  // scanning broadens vulnerability detection beyond the platform's native alerts.
-  osvVulnerabilityAlerts: true,
+  // slango's shared base (renovate/base.json5): config:best-practices, the 3-day
+  // supply-chain delay, OSV alerts, and timestamp-optional for the registries that
+  // publish no release timestamps (lscr.io and ghcr.io among them).
+  extends: ["github>danilupion/slango//renovate/base.json5"],
   packageRules: [
     {
       matchDatasources: ["docker"],
@@ -23,16 +20,6 @@
       matchUpdateTypes: ['digest'],
       minimumReleaseAge: null,
       prCreation: 'not-pending',
-    },
-    {
-      // lscr.io/ghcr.io publish no release timestamps (renovatebot/renovate#38656,
-      // renovatebot/renovate#39064), and since Renovate 42 a missing timestamp counts
-      // as "never old enough", which would block these updates forever. Treat missing
-      // timestamps as stable; the 3-day delay still applies wherever timestamps exist.
-      // (Digest updates are handled separately above.)
-      matchDatasources: ['docker'],
-      matchPackageNames: ['lscr.io/**', 'ghcr.io/**'],
-      minimumReleaseAgeBehaviour: 'timestamp-optional',
     },
     {
       matchDatasources: [
