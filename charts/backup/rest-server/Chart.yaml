@@ -1,0 +1,17 @@
+apiVersion: v2
+name: rest-server
+description: restic's rest-server, an append-only backup target, with an optional prune job
+type: application
+version: 0.1.0
+appVersion: "0.14.0"
+keywords:
+  - restic
+  - backup
+home: https://github.com/restic/rest-server
+sources:
+  - https://github.com/restic/rest-server
+  - https://github.com/restic/restic
+dependencies:
+  - name: common
+    version: 0.2.0
+    repository: file://../../common

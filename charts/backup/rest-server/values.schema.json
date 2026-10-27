@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": { "type": "string", "description": "Container image registry" },
+        "repository": { "type": "string", "description": "Container image repository" },
+        "tag": { "type": "string", "description": "Container image tag, optionally with @sha256 digest" },
+        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+      },
+      "required": ["registry", "repository", "tag", "pullPolicy"]
+    },
+    "tz": { "type": "string", "description": "Timezone (e.g., Europe/Madrid)" },
+    "restServer": {
+      "type": "object",
+      "properties": {
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "appendOnly": { "type": "boolean", "description": "Clients may add snapshots but not delete them" },
+        "privateRepos": { "type": "boolean", "description": "Each user reaches only /<user>/" },
+        "extraArgs": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["port", "appendOnly", "privateRepos"]
+    },
+    "htpasswd": {
+      "type": "object",
+      "properties": {
+        "existingSecret": { "type": "string", "description": "Secret holding the htpasswd file; empty refuses everyone" },
+        "key": { "type": "string", "minLength": 1 }
+      },
+      "required": ["existingSecret", "key"]
+    },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "hostPath": { "type": "string", "description": "Host folder holding the repositories (required)" },
+        "hostPathType": { "type": "string", "enum": ["Directory", "DirectoryOrCreate"] }
+      },
+      "required": ["hostPath", "hostPathType"]
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["ClusterIP", "NodePort", "LoadBalancer"] },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "nodePort": { "type": ["integer", "null"], "minimum": 30000, "maximum": 32767 },
+        "annotations": { "type": "object" }
+      },
+      "required": ["type", "port"]
+    },
+    "prune": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "schedule": { "type": "string", "description": "Cron schedule, in tz" },
+        "startingDeadlineSeconds": { "type": "integer", "minimum": 1 },
+        "activeDeadlineSeconds": { "type": "integer", "minimum": 1 },
+        "repositories": {
+          "type": "array",
+          "description": "Repository (user) names; each lives at /<name>/",
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "uniqueItems": true
+        },
+        "passwordsSecret": { "type": "string", "description": "Secret with one restic password per repository" },
+        "forgetArgs": { "type": "array", "items": { "type": "string", "pattern": "^--[a-z-]+(=[A-Za-z0-9._%-]+)?$" } },
+        "retryLock": { "type": "string", "pattern": "^[0-9]+[smh]$" },
+        "check": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "readDataSubset": { "type": "string", "pattern": "^([0-9]+(\\.[0-9]+)?%|[0-9]+/[0-9]+|[0-9]+[KMGT]?)?$" }
+          }
+        },
+        "heartbeat": {
+          "type": "object",
+          "properties": {
+            "existingSecret": { "type": "string" },
+            "key": { "type": "string" }
+          }
+        }
+      },
+      "required": ["enabled", "repositories", "forgetArgs", "retryLock"]
+    }
+  },
+  "required": ["image", "restServer", "htpasswd", "storage", "service", "prune"]
+}

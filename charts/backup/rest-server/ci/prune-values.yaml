@@ -1,0 +1,15 @@
+storage:
+  hostPath: /srv/restic
+htpasswd:
+  existingSecret: ci-htpasswd
+service:
+  type: NodePort
+  nodePort: 30800
+prune:
+  enabled: true
+  repositories:
+    - cerebro
+    - danilupion-com
+  passwordsSecret: ci-passwords
+  heartbeat:
+    existingSecret: ci-heartbeat

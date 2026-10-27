@@ -1,0 +1,2 @@
+storage:
+  hostPath: /srv/restic
