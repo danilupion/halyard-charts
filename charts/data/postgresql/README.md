@@ -1,6 +1,6 @@
 # postgresql
 
-![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-informational?style=flat-square)
+![Version: 1.2.1](https://img.shields.io/badge/Version-1.2.1-informational?style=flat-square)
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 ![AppVersion: 18](https://img.shields.io/badge/AppVersion-18-informational?style=flat-square)
 
@@ -150,7 +150,8 @@ backup:
 - Each database the server accepts connections to gets `pg_dump -Fc -Z0` (uncompressed, so the file backup
   compresses and deduplicates it), and the roles get `pg_dumpall --globals-only`. They run as `auth.username`, a
   superuser, so row-level security never hides rows.
-- The newest `backup.keep` dumps (14) are kept per database. A database that is dropped keeps its old dumps.
+- The newest `backup.keep` dumps (3) are kept per database: the file backup keeps the history, and these cover the
+  nights it missed. A database that is dropped keeps its old dumps.
 - Each dump is written as `<timestamp>.dump.partial` and renamed once complete. When every dump succeeded, the job
   writes the run's timestamp to `done`; a file backup can compare it with its last snapshot.
 - The volume uses `primary.persistence.storageClass` unless `backup.persistence.storageClass` is set.

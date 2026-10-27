@@ -189,8 +189,9 @@ backup:
   activeDeadlineSeconds: 7200
   # Retries after a failed run; each one dumps every database again
   backoffLimit: 2
-  # Dumps kept per database. Count-based, so a pause never erodes them
-  keep: 14
+  # Dumps kept per database. Count-based, so a pause never erodes them. The
+  # file backup keeps the history; these only cover the nights it missed
+  keep: 3
   # How long pg_dump waits for a table lock (a migration in progress) before
   # that database's dump fails
   lockWaitTimeout: 10min
