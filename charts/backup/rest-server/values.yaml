@@ -1,0 +1,117 @@
+# Common labels/annotations applied to all resources
+commonLabels: {}
+commonAnnotations: {}
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the resources
+fullnameOverride: ""
+
+# rest-server container image
+image:
+  registry: docker.io
+  repository: restic/rest-server
+  tag: "0.14.0@sha256:d2aff06f47eb38637dff580c3e6bce4af98f386c396a25d32eb6727ec96214a5"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Timezone (also the prune job's schedule)
+tz: "Europe/Madrid"
+
+restServer:
+  port: 8000
+  # Clients can add snapshots but never delete or overwrite them; the prune
+  # job below removes old ones next to the data instead
+  appendOnly: true
+  # Each user reaches only the repository named after it, /<user>/
+  privateRepos: true
+  # Extra flags, e.g. --log=- or --max-size=<bytes>
+  extraArgs: []
+
+# Users: a Secret whose key holds an htpasswd file (bcrypt, `htpasswd -nB
+# <user>`). It is mounted as a folder, so a change reaches the pod and
+# rest-server reloads it without a restart. Empty: the server runs and
+# refuses every request.
+htpasswd:
+  existingSecret: ""
+  key: htpasswd
+
+# Host folder holding the repositories (required). With type Directory the
+# pod refuses to start while the folder is missing, so an unplugged disk
+# can't send backups anywhere else.
+storage:
+  hostPath: ""
+  hostPathType: Directory
+
+service:
+  type: ClusterIP
+  port: 8000
+  # Fixed node port, for type NodePort
+  nodePort: null
+  annotations: {}
+
+resources: {}
+
+podSecurityContext: {}
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+
+# rest-server answers 401 without credentials, so the probes only check the port
+livenessProbe:
+  tcpSocket:
+    port: http
+  periodSeconds: 30
+readinessProbe:
+  tcpSocket:
+    port: http
+  periodSeconds: 10
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Retention and an integrity check, run next to the data. Append-only mode
+# stops clients from deleting anything, so this job is what removes old
+# snapshots.
+prune:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: restic/restic
+    tag: "0.19.1@sha256:136600b6ff6843d61d355f7f71f460a166429f35de6fd11b568fece3c9a4d510"
+    pullPolicy: IfNotPresent
+  # Sundays at noon
+  schedule: "0 12 * * 0"
+  # A run missed while the node was off still starts when it is back, within
+  # this many seconds (6 days)
+  startingDeadlineSeconds: 518400
+  activeDeadlineSeconds: 21600
+  # Repositories to prune, by user name (each lives at /<name>/)
+  repositories: []
+  # Secret with one key per repository, named after it: its restic password
+  passwordsSecret: ""
+  # Snapshots are grouped by host because each client backs up under a fixed
+  # --host; grouping by path too would split a host's snapshots whenever its
+  # folders change
+  forgetArgs:
+    - --group-by=host
+    - --keep-within-daily=30d
+    - --keep-within-weekly=90d
+  # How long to wait for a backup in progress to release its lock
+  retryLock: 1h
+  # restic check after pruning; readDataSubset also re-reads that share of
+  # the data ("" checks the structure only)
+  check:
+    enabled: true
+    readDataSubset: "5%"
+  # Optional heartbeat URL (a Secret key), fetched once every repository
+  # succeeded
+  heartbeat:
+    existingSecret: ""
+    key: url
+  resources: {}

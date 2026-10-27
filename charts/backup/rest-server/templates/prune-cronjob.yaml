@@ -1,0 +1,104 @@
+{{- if .Values.prune.enabled }}
+{{- $prune := .Values.prune -}}
+{{- if not $prune.repositories }}
+{{- fail "prune.repositories must list at least one repository" }}
+{{- end }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-prune" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  schedule: {{ $prune.schedule | quote }}
+  timeZone: {{ .Values.tz | quote }}
+  startingDeadlineSeconds: {{ $prune.startingDeadlineSeconds }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: {{ $prune.activeDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            {{- include "common.selectorLabels" (dict "root" $ "component" "prune") | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.podSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: prune
+              {{- with .Values.securityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- include "common.image" (dict "repository" (printf "%s/%s" $prune.image.registry $prune.image.repository) "tag" $prune.image.tag "pullPolicy" $prune.image.pullPolicy "root" $) | nindent 14 }}
+              command: ["/bin/sh", "-c"]
+              # Every repository is tried even if one fails; the heartbeat
+              # is fetched only when all of them succeeded
+              args:
+                - |
+                  failed=0
+                  for repo in {{ range $prune.repositories }}{{ . | quote }} {{ end }}; do
+                    echo "== $repo"
+                    export RESTIC_REPOSITORY="/data/$repo" RESTIC_PASSWORD_FILE="/passwords/$repo"
+                    if ! restic forget --prune --retry-lock={{ $prune.retryLock }} {{ join " " $prune.forgetArgs }}; then
+                      failed=1
+                      continue
+                    fi
+                    {{- if $prune.check.enabled }}
+                    restic check --retry-lock={{ $prune.retryLock }}{{ with $prune.check.readDataSubset }} --read-data-subset={{ . }}{{ end }} || failed=1
+                    {{- end }}
+                  done
+                  [ "$failed" -eq 0 ] || exit 1
+                  if [ -n "${HEARTBEAT_URL:-}" ]; then
+                    wget -q -O /dev/null "$HEARTBEAT_URL"
+                  fi
+              env:
+                {{- include "common.env" (dict "name" "TZ" "value" .Values.tz) | nindent 16 }}
+                {{- include "common.env" (dict "name" "RESTIC_CACHE_DIR" "value" "/tmp/cache") | nindent 16 }}
+                {{- include "common.env" (dict "name" "TMPDIR" "value" "/tmp") | nindent 16 }}
+                {{- with $prune.heartbeat.existingSecret }}
+                {{- include "common.envSecret" (dict "name" "HEARTBEAT_URL" "secret" . "key" $prune.heartbeat.key) | nindent 16 }}
+                {{- end }}
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+                - name: tmp
+                  mountPath: /tmp
+                - name: passwords
+                  mountPath: /passwords
+                  readOnly: true
+              {{- with $prune.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+          volumes:
+            - name: data
+              hostPath:
+                path: {{ required "storage.hostPath is required" .Values.storage.hostPath }}
+                type: {{ .Values.storage.hostPathType }}
+            - name: tmp
+              emptyDir: {}
+            - name: passwords
+              secret:
+                secretName: {{ required "prune.passwordsSecret is required" $prune.passwordsSecret }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

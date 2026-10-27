@@ -28,6 +28,12 @@ Stateful data services for production use:
 - **[mongodb](charts/data/mongodb)** - MongoDB standalone database server with Prometheus metrics
 - **[postgresql](charts/data/postgresql)** - PostgreSQL standalone database server with Prometheus metrics
 
+### Backup Charts (`charts/backup/`)
+
+Backup targets and jobs:
+
+- **[rest-server](charts/backup/rest-server)** - restic's rest-server (append-only, one private repository per user) with a prune and check job
+
 ### Application Charts (`charts/apps/`)
 
 Application deployments ready for production use:

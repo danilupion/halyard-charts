@@ -1,0 +1,100 @@
+{{- $options := list (printf "--listen=:%d" (int .Values.restServer.port)) -}}
+{{- if .Values.restServer.appendOnly }}{{- $options = append $options "--append-only" }}{{- end }}
+{{- if .Values.restServer.privateRepos }}{{- $options = append $options "--private-repos" }}{{- end }}
+{{- $options = concat $options .Values.restServer.extraArgs -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "common.metadata" (dict "name" (include "common.fullname" .) "root" $) | nindent 2 }}
+spec:
+  replicas: 1
+  # One server per folder, never two during a rollout
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" (dict "root" $ "component" "server") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: rest-server
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "common.image" (dict "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository) "tag" .Values.image.tag "pullPolicy" .Values.image.pullPolicy "root" $) | nindent 10 }}
+          # The image's entrypoint runs rest-server with these; with no
+          # htpasswd Secret it creates an empty file, which refuses everyone
+          env:
+            {{- include "common.env" (dict "name" "TZ" "value" .Values.tz) | nindent 12 }}
+            {{- include "common.env" (dict "name" "DATA_DIRECTORY" "value" "/data") | nindent 12 }}
+            {{- if .Values.htpasswd.existingSecret }}
+            {{- include "common.env" (dict "name" "PASSWORD_FILE" "value" (printf "/etc/rest-server/%s" .Values.htpasswd.key)) | nindent 12 }}
+            {{- else }}
+            {{- include "common.env" (dict "name" "PASSWORD_FILE" "value" "/tmp/htpasswd") | nindent 12 }}
+            {{- end }}
+            {{- include "common.env" (dict "name" "OPTIONS" "value" (join " " $options)) | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.restServer.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.htpasswd.existingSecret }}
+            - name: htpasswd
+              mountPath: /etc/rest-server
+              readOnly: true
+            {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: data
+          hostPath:
+            path: {{ required "storage.hostPath is required" .Values.storage.hostPath }}
+            type: {{ .Values.storage.hostPathType }}
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.htpasswd.existingSecret }}
+        - name: htpasswd
+          secret:
+            secretName: {{ .Values.htpasswd.existingSecret }}
+            items:
+              - key: {{ .Values.htpasswd.key }}
+                path: {{ .Values.htpasswd.key }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
