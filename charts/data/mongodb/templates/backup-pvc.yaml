@@ -1,0 +1,10 @@
+{{- if .Values.backup.enabled }}
+{{- $persistence := .Values.backup.persistence }}
+{{- include "common.pvc" (dict
+    "name" (printf "%s-backups" (include "common.fullname" .))
+    "spec" (dict
+      "accessModes" $persistence.accessModes
+      "storageClassName" ($persistence.storageClass | default .Values.primary.persistence.storageClass)
+      "size" $persistence.size)
+    "root" $) }}
+{{- end }}

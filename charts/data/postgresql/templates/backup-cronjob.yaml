@@ -1,0 +1,128 @@
+{{- if .Values.backup.enabled }}
+{{- $backup := .Values.backup -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-backup" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  schedule: {{ $backup.schedule | quote }}
+  timeZone: {{ $backup.timeZone | quote }}
+  startingDeadlineSeconds: {{ $backup.startingDeadlineSeconds }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: {{ $backup.backoffLimit }}
+      activeDeadlineSeconds: {{ $backup.activeDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            {{- include "common.selectorLabels" (dict "root" $ "component" "backup") | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.primary.podSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: backup
+              {{- with .Values.primary.securityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- include "common.image" (dict
+                  "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository)
+                  "tag" .Values.image.tag
+                  "pullPolicy" .Values.image.pullPolicy
+                  "root" $) | nindent 14 }}
+              command: ["/bin/sh", "-c"]
+              # Every database is dumped even if one fails; the done marker is
+              # written only when all of them succeeded. Each dump is written
+              # under a .partial name and renamed once complete, so a file
+              # backup never copies half a dump.
+              args:
+                - |
+                  set -u
+                  umask 077
+                  ts=$(date -u +%Y%m%dT%H%M%SZ)
+                  cd /backups
+                  # Left over by a run that was killed mid-dump
+                  find . -name '*.partial' -delete
+                  failed=0
+
+                  # rotate DIR EXT: keeps the newest $KEEP dumps in DIR
+                  rotate() {
+                    ls -1 "$1" | grep -E "^[0-9]{8}T[0-9]{6}Z\.$2\$" | sort -r | tail -n +$((KEEP + 1)) |
+                      while read -r f; do rm -f -- "$1/$f"; done
+                  }
+
+                  mkdir -p globals
+                  if pg_dumpall --globals-only --file="globals/$ts.sql.partial"; then
+                    mv "globals/$ts.sql.partial" "globals/$ts.sql"
+                    rotate globals sql
+                    echo "roles: done"
+                  else
+                    echo "roles: pg_dumpall failed" >&2
+                    failed=1
+                  fi
+
+                  dbs=$(psql -Atc "SELECT datname FROM pg_database WHERE datallowconn AND NOT datistemplate ORDER BY 1") || exit 1
+                  while read -r db; do
+                    [ -n "$db" ] || continue
+                    mkdir -p "$db"
+                    if pg_dump -Fc -Z0 --lock-wait-timeout={{ $backup.lockWaitTimeout }} --dbname="$db" --file="$db/$ts.dump.partial"; then
+                      mv "$db/$ts.dump.partial" "$db/$ts.dump"
+                      rotate "$db" dump
+                      echo "$db: $(du -h "$db/$ts.dump" | cut -f1)"
+                    else
+                      echo "$db: pg_dump failed" >&2
+                      rm -f "$db/$ts.dump.partial"
+                      failed=1
+                    fi
+                  done <<EOF
+                  $dbs
+                  EOF
+
+                  [ "$failed" -eq 0 ] || exit 1
+                  echo "$ts" > done.partial && mv done.partial done
+              env:
+                {{- include "common.env" (dict "name" "PGHOST" "value" (include "common.fullname" .)) | nindent 16 }}
+                {{- include "common.env" (dict "name" "PGPORT" "value" .Values.service.port) | nindent 16 }}
+                {{- include "common.env" (dict "name" "PGUSER" "value" .Values.auth.username) | nindent 16 }}
+                {{- include "common.env" (dict "name" "PGDATABASE" "value" .Values.auth.database) | nindent 16 }}
+                {{- include "common.envSecret" (dict "name" "PGPASSWORD" "secret" .Values.auth.existingSecret "key" .Values.auth.existingSecretKey) | nindent 16 }}
+                {{- include "common.env" (dict "name" "KEEP" "value" $backup.keep) | nindent 16 }}
+                {{- include "common.env" (dict "name" "HOME" "value" "/tmp") | nindent 16 }}
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                - name: tmp
+                  mountPath: /tmp
+              {{- with $backup.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: {{ include "common.fullname" . }}-backups
+            - name: tmp
+              emptyDir: {}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

@@ -1,6 +1,6 @@
 # postgresql
 
-![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square)
+![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-informational?style=flat-square)
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 ![AppVersion: 18](https://img.shields.io/badge/AppVersion-18-informational?style=flat-square)
 
@@ -136,6 +136,39 @@ primary:
 ```
 
 **WARNING:** Disabling persistence will result in data loss when the pod restarts.
+
+## Backups
+
+`backup.enabled: true` adds a nightly CronJob (03:00 UTC) that dumps every database to a volume of its own,
+`<fullname>-backups`, so a file backup such as restic can copy that volume and skip the live data folder:
+
+```yaml
+backup:
+  enabled: true
+```
+
+- Each database the server accepts connections to gets `pg_dump -Fc -Z0` (uncompressed, so the file backup
+  compresses and deduplicates it), and the roles get `pg_dumpall --globals-only`. They run as `auth.username`, a
+  superuser, so row-level security never hides rows.
+- The newest `backup.keep` dumps (14) are kept per database. A database that is dropped keeps its old dumps.
+- Each dump is written as `<timestamp>.dump.partial` and renamed once complete. When every dump succeeded, the job
+  writes the run's timestamp to `done`; a file backup can compare it with its last snapshot.
+- The volume uses `primary.persistence.storageClass` unless `backup.persistence.storageClass` is set.
+
+Volume layout:
+
+```text
+globals/20261028T030000Z.sql      roles and tablespaces
+<database>/20261028T030000Z.dump  one per database
+done                              20261028T030000Z
+```
+
+To restore a database, roles first if they are missing:
+
+```bash
+psql -f globals/20261028T030000Z.sql      # errors for roles that already exist are harmless
+pg_restore --clean --if-exists --create -d postgres myapp/20261028T030000Z.dump
+```
 
 ## Metrics
 
