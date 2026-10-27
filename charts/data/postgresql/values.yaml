@@ -169,6 +169,39 @@ metrics:
 #           passwordSecretKey: MYAPP_WEB_PASSWORD
 databases: []
 
+# Nightly logical dumps to a volume of their own, for a file backup (such as
+# restic) to copy instead of the live data folder. Every database the server
+# accepts connections to is dumped with pg_dump -Fc -Z0, uncompressed so the
+# file backup compresses and deduplicates it, plus the roles with
+# pg_dumpall --globals-only, as auth.username (a superuser, so row-level
+# security never hides rows). Layout of the volume:
+#   globals/<timestamp>.sql      roles and tablespaces
+#   <database>/<timestamp>.dump  one per database (pg_restore)
+#   done                         the run's timestamp, written only when every
+#                                dump succeeded
+backup:
+  enabled: false
+  schedule: "0 3 * * *"
+  timeZone: Etc/UTC
+  # A run missed while the cluster was down still starts when it is back,
+  # within this many seconds (20 h)
+  startingDeadlineSeconds: 72000
+  activeDeadlineSeconds: 7200
+  # Retries after a failed run; each one dumps every database again
+  backoffLimit: 2
+  # Dumps kept per database. Count-based, so a pause never erodes them
+  keep: 14
+  # How long pg_dump waits for a table lock (a migration in progress) before
+  # that database's dump fails
+  lockWaitTimeout: 10min
+  persistence:
+    # Empty: primary.persistence.storageClass
+    storageClass: ""
+    size: 5Gi
+    accessModes:
+      - ReadWriteOnce
+  resources: {}
+
 # Node selector for pod assignment
 nodeSelector: {}
 

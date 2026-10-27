@@ -1,0 +1,124 @@
+{{- if .Values.backup.enabled }}
+{{- $backup := .Values.backup -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  {{- include "common.metadata" (dict "name" (printf "%s-backup" (include "common.fullname" .)) "root" $) | nindent 2 }}
+spec:
+  schedule: {{ $backup.schedule | quote }}
+  timeZone: {{ $backup.timeZone | quote }}
+  startingDeadlineSeconds: {{ $backup.startingDeadlineSeconds }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: {{ $backup.backoffLimit }}
+      activeDeadlineSeconds: {{ $backup.activeDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            {{- include "common.selectorLabels" (dict "root" $ "component" "backup") | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.primary.podSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: backup
+              {{- with .Values.primary.securityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- include "common.image" (dict
+                  "repository" (printf "%s/%s" .Values.image.registry .Values.image.repository)
+                  "tag" .Values.image.tag
+                  "pullPolicy" .Values.image.pullPolicy
+                  "root" $) | nindent 14 }}
+              command: ["/bin/sh", "-c"]
+              # Every database is dumped even if one fails; the done marker is
+              # written only when all of them succeeded. Each dump is written
+              # under a .partial name and renamed once complete, so a file
+              # backup never copies half a dump.
+              args:
+                - |
+                  set -u
+                  umask 077
+                  ts=$(date -u +%Y%m%dT%H%M%SZ)
+                  cd /backups
+                  # Left over by a run that was killed mid-dump
+                  find . -name '*.partial' -delete
+                  failed=0
+
+                  # rotate DIR EXT: keeps the newest $KEEP dumps in DIR
+                  rotate() {
+                    ls -1 "$1" | grep -E "^[0-9]{8}T[0-9]{6}Z\.$2\$" | sort -r | tail -n +$((KEEP + 1)) |
+                      while read -r f; do rm -f -- "$1/$f"; done
+                  }
+
+                  # admin holds the users and roles; local and config are the
+                  # server's own
+                  dbs=$(mongosh --quiet --host "$MONGO_HOST" --port "$MONGO_PORT" \
+                    --username "$MONGO_USERNAME" --password "$MONGO_PASSWORD" --authenticationDatabase admin \
+                    --eval 'db.adminCommand({listDatabases: 1, nameOnly: true}).databases.forEach(d => {
+                      if (d.name !== "local" && d.name !== "config") print(d.name) })') || exit 1
+                  while read -r db; do
+                    [ -n "$db" ] || continue
+                    mkdir -p "$db"
+                    if mongodump --quiet --host "$MONGO_HOST" --port "$MONGO_PORT" \
+                      --username "$MONGO_USERNAME" --password "$MONGO_PASSWORD" --authenticationDatabase admin \
+                      --db="$db" --archive="$db/$ts.archive.partial"; then
+                      mv "$db/$ts.archive.partial" "$db/$ts.archive"
+                      rotate "$db" archive
+                      echo "$db: $(du -h "$db/$ts.archive" | cut -f1)"
+                    else
+                      echo "$db: mongodump failed" >&2
+                      rm -f "$db/$ts.archive.partial"
+                      failed=1
+                    fi
+                  done <<EOF
+                  $dbs
+                  EOF
+
+                  [ "$failed" -eq 0 ] || exit 1
+                  echo "$ts" > done.partial && mv done.partial done
+              env:
+                {{- include "common.env" (dict "name" "MONGO_HOST" "value" (include "common.fullname" .)) | nindent 16 }}
+                {{- include "common.env" (dict "name" "MONGO_PORT" "value" .Values.service.port) | nindent 16 }}
+                {{- include "common.env" (dict "name" "MONGO_USERNAME" "value" .Values.auth.rootUsername) | nindent 16 }}
+                {{- include "common.envSecret" (dict "name" "MONGO_PASSWORD" "secret" .Values.auth.existingSecret "key" .Values.auth.existingSecretKey) | nindent 16 }}
+                {{- include "common.env" (dict "name" "KEEP" "value" $backup.keep) | nindent 16 }}
+                {{- include "common.env" (dict "name" "HOME" "value" "/tmp") | nindent 16 }}
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                - name: tmp
+                  mountPath: /tmp
+              {{- with $backup.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: {{ include "common.fullname" . }}-backups
+            - name: tmp
+              emptyDir: {}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

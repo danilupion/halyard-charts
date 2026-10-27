@@ -1,6 +1,6 @@
 # mongodb
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
+![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square)
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 ![AppVersion: 8.0](https://img.shields.io/badge/AppVersion-8.0-informational?style=flat-square)
 
@@ -86,6 +86,37 @@ primary:
 ```
 
 **WARNING:** Disabling persistence will result in data loss when the pod restarts.
+
+## Backups
+
+`backup.enabled: true` adds a nightly CronJob (03:00 UTC) that dumps every database to a volume of its own,
+`<fullname>-backups`, so a file backup such as restic can copy that volume and skip the live data folder:
+
+```yaml
+backup:
+  enabled: true
+```
+
+- Each database but `local` and `config` gets `mongodump --archive`, uncompressed (no `--gzip`, so the file backup
+  compresses and deduplicates it), as `auth.rootUsername`. `admin` holds the users and roles.
+- The newest `backup.keep` dumps (14) are kept per database. A database that is dropped keeps its old dumps.
+- Each dump is written as `<timestamp>.archive.partial` and renamed once complete. When every dump succeeded, the
+  job writes the run's timestamp to `done`; a file backup can compare it with its last snapshot.
+- The volume uses `primary.persistence.storageClass` unless `backup.persistence.storageClass` is set.
+
+Volume layout:
+
+```text
+admin/20261028T030000Z.archive    users and roles
+<database>/20261028T030000Z.archive
+done                              20261028T030000Z
+```
+
+To restore a database (`--drop` replaces its collections):
+
+```bash
+mongorestore --username root --authenticationDatabase admin --drop --archive=myapp/20261028T030000Z.archive
+```
 
 ## Metrics
 

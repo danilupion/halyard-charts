@@ -1,0 +1,5 @@
+auth:
+  existingSecret: ci-auth
+
+backup:
+  enabled: true
