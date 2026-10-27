@@ -1,5 +1,5 @@
 apiVersion: v2
-name: rest-server
+name: restic-rest-server
 description: restic's rest-server, an append-only backup target, with an optional prune job
 type: application
 version: 0.1.0

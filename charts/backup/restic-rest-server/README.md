@@ -1,4 +1,4 @@
-# rest-server
+# restic-rest-server
 
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square)
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
@@ -40,11 +40,11 @@ node was off start when it is back. When every repository succeeds, it fetches a
 ```bash
 # One htpasswd line per user (bcrypt)
 htpasswd -nB cerebro >> htpasswd
-kubectl create secret generic rest-server-htpasswd --from-file=htpasswd
+kubectl create secret generic restic-rest-server-htpasswd --from-file=htpasswd
 
-helm install rest-server ./charts/backup/rest-server \
+helm install restic-rest-server ./charts/backup/restic-rest-server \
   --set storage.hostPath=/srv/restic \
-  --set htpasswd.existingSecret=rest-server-htpasswd
+  --set htpasswd.existingSecret=restic-rest-server-htpasswd
 ```
 
 A client then uses `rest:http://cerebro:<password>@<host>:8000/cerebro/`.
@@ -55,7 +55,7 @@ To enable pruning, create a Secret with one key per repository holding its resti
 prune:
   enabled: true
   repositories: [cerebro]
-  passwordsSecret: rest-server-repository-passwords
+  passwordsSecret: restic-rest-server-repository-passwords
 ```
 
 ## Values

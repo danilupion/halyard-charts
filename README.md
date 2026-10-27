@@ -32,7 +32,7 @@ Stateful data services for production use:
 
 Backup targets and jobs:
 
-- **[rest-server](charts/backup/rest-server)** - restic's rest-server (append-only, one private repository per user) with a prune and check job
+- **[restic-rest-server](charts/backup/restic-rest-server)** - restic's rest-server (append-only, one private repository per user) with a prune and check job
 
 ### Application Charts (`charts/apps/`)
 
