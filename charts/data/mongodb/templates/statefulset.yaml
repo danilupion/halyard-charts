@@ -66,16 +66,15 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data/db
+          # Liveness and readiness use a TCP check, not mongosh: every mongosh run
+          # is a Node.js process of ~265MB counted against this container, so
+          # probes that overlap on a busy node push mongod into an OOM kill, and
+          # a slow one marks the pod not ready and cuts off its clients. Only
+          # the startup probe, which stops after its first success, runs mongosh.
           {{- if .Values.primary.livenessProbe.enabled }}
           livenessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - >-
-                  mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password
-                  "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval
-                  "db.adminCommand('ping')"
+            tcpSocket:
+              port: mongodb
             initialDelaySeconds: {{ .Values.primary.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.primary.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.primary.livenessProbe.timeoutSeconds }}
@@ -84,14 +83,8 @@ spec:
           {{- end }}
           {{- if .Values.primary.readinessProbe.enabled }}
           readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - >-
-                  mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password
-                  "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval
-                  "db.adminCommand('ping')"
+            tcpSocket:
+              port: mongodb
             initialDelaySeconds: {{ .Values.primary.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.primary.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.primary.readinessProbe.timeoutSeconds }}
