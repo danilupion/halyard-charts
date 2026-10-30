@@ -104,6 +104,8 @@ backup:
 - Each dump is written as `<timestamp>.archive.partial` and renamed once complete. When every dump succeeded, the
   job writes the run's timestamp to `done`; a file backup can compare it with its last snapshot.
 - The volume uses `primary.persistence.storageClass` unless `backup.persistence.storageClass` is set.
+- Dumps are readable by their owner only. The job's pod gets `fsGroupChangePolicy: OnRootMismatch` unless
+  `primary.podSecurityContext` sets one, so the kubelet doesn't add group access to the older dumps on every run.
 
 Volume layout:
 

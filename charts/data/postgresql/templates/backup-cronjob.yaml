@@ -28,6 +28,11 @@ spec:
           {{- with .Values.primary.podSecurityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
+            {{- if not (hasKey . "fsGroupChangePolicy") }}
+            # With fsGroup alone the kubelet adds group read/write to every
+            # file in the volume each time a run mounts it, undoing umask 077
+            fsGroupChangePolicy: OnRootMismatch
+            {{- end }}
           {{- end }}
           containers:
             - name: backup
