@@ -1,3 +1,5 @@
+externalPostgresql:
+  host: postgresql.example.com
 route:
   enabled: true
   parentRefs:
