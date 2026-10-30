@@ -2,7 +2,7 @@ apiVersion: v2
 name: postgresql
 description: PostgreSQL standalone database server
 type: application
-version: 1.2.1
+version: 1.2.2
 appVersion: "18"
 keywords:
   - postgresql

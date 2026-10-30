@@ -134,18 +134,18 @@ spec:
               value: {{ printf
                 "mongodb://%s:$(MONGO_INITDB_ROOT_PASSWORD)@localhost:27017/admin?ssl=false"
                 .Values.auth.rootUsername | quote }}
+          # The landing page, not /metrics: /metrics queries MongoDB, so a busy
+          # database would fail the probe and restart a healthy exporter. No
+          # readinessProbe: the exporter serves no clients, and a not-ready
+          # sidecar marks the whole pod not ready, pulling MongoDB out of its
+          # Service and resetting every client connection.
           livenessProbe:
             httpGet:
-              path: /metrics
+              path: /
               port: metrics
             initialDelaySeconds: 30
             periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /metrics
-              port: metrics
-            initialDelaySeconds: 30
-            periodSeconds: 5
+            timeoutSeconds: 5
           {{- with .Values.metrics.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

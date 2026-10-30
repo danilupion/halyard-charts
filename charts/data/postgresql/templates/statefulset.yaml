@@ -147,18 +147,18 @@ spec:
                 "user=%s password=$(POSTGRES_PASSWORD) host=localhost port=5432 dbname=%s sslmode=disable"
                 .Values.auth.username
                 .Values.auth.database | quote }}
+          # The landing page, not /metrics: /metrics queries PostgreSQL, so a busy
+          # database would fail the probe and restart a healthy exporter. No
+          # readinessProbe: the exporter serves no clients, and a not-ready
+          # sidecar marks the whole pod not ready, pulling PostgreSQL out of its
+          # Service and resetting every client connection.
           livenessProbe:
             httpGet:
-              path: /metrics
+              path: /
               port: metrics
             initialDelaySeconds: 30
             periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /metrics
-              port: metrics
-            initialDelaySeconds: 30
-            periodSeconds: 5
+            timeoutSeconds: 5
           {{- with .Values.metrics.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
