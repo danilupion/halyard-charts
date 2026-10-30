@@ -2,7 +2,7 @@ apiVersion: v2
 name: plausible
 description: Plausible Analytics - privacy-friendly, cookie-free web analytics
 type: application
-version: 2.0.0
+version: 3.0.0
 appVersion: v3.1.0
 keywords:
   - plausible
@@ -17,9 +17,5 @@ dependencies:
   - name: common
     version: 0.2.0
     repository: file://../../common
-  - name: postgresql
-    version: ">=0.0.0"
-    repository: https://charts.bitnami.com/bitnami
-    condition: postgresql.enabled
   # ClickHouse is deployed via custom templates (not Bitnami chart)
   # using official clickhouse/clickhouse-server images

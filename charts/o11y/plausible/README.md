@@ -7,14 +7,16 @@ Privacy-friendly, cookie-free web analytics. GDPR compliant without consent bann
 This chart deploys [Plausible Analytics Community Edition](https://plausible.io) on Kubernetes with:
 
 - Plausible server
-- PostgreSQL (for user data and configuration)
-- ClickHouse (for analytics events)
+- ClickHouse (for analytics events), unless an external one is configured
+
+PostgreSQL (users, sites and settings) is not deployed: the chart connects to an existing server.
 
 ## Prerequisites
 
 - Kubernetes 1.19+
 - Helm 3.0+
 - PV provisioner support (for persistence)
+- A PostgreSQL server with a database and an owner user for Plausible (it runs its own migrations)
 
 ## Installation
 
@@ -31,6 +33,7 @@ helm install plausible . -f values.yaml
 |-----------|-------------|
 | `plausible.baseUrl` | Public URL where Plausible will be accessible |
 | `plausible.secretKeyBase` | 64+ byte secret for session encryption |
+| `externalPostgresql.host` | PostgreSQL server Plausible connects to |
 
 Generate a secret key:
 
@@ -40,18 +43,10 @@ openssl rand -base64 48
 
 ### Database Options
 
-#### Bundled Databases (default)
-
-PostgreSQL and ClickHouse are deployed as subcharts by default.
-
-#### External Databases
-
-To use external databases:
+PostgreSQL is always external (`username` and `database` default to `plausible`, `existingSecretKey` to
+`password`). ClickHouse is deployed by the chart unless `clickhouse.enabled: false` points it at an external one:
 
 ```yaml
-postgresql:
-  enabled: false
-
 externalPostgresql:
   host: postgres.example.com
   port: 5432
@@ -130,10 +125,14 @@ After deployment, add this script to your websites:
 Minimum recommended:
 
 - Plausible: 256Mi RAM, 100m CPU
-- PostgreSQL: 256Mi RAM
 - ClickHouse: 512Mi RAM (analytics data)
 
 ## Upgrading
+
+From 2.x: 3.0.0 drops the bundled Bitnami PostgreSQL subchart (`postgresql.*` values). Before upgrading, copy the
+data to another server (`pg_dump -Fc plausible`, then `pg_restore --no-owner --role=<owner>` into an empty
+database) and set `externalPostgresql`. The old StatefulSet's volume is left behind; delete it once the copy is
+verified.
 
 ```bash
 helm dependency update

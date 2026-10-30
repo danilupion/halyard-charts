@@ -157,23 +157,8 @@ tolerations: []
 # Affinity for pod assignment
 affinity: {}
 
-# PostgreSQL subchart configuration
-# Used for user data, sites, and configuration
-postgresql:
-  enabled: true
-  fullnameOverride: plausible-postgresql
-  auth:
-    username: plausible
-    password: ""
-    database: plausible
-    # Use existing secret with keys: password, postgres-password
-    existingSecret: ""
-  primary:
-    persistence:
-      enabled: true
-      size: 8Gi
-
-# External PostgreSQL (when postgresql.enabled=false)
+# PostgreSQL for users, sites and settings. The chart doesn't deploy one: point
+# it at an existing server (host is required)
 externalPostgresql:
   host: ""
   port: 5432

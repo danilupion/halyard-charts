@@ -37,23 +37,6 @@ spec:
             {{- include "common.env" (dict "name" "SECRET_KEY_BASE" "value" .Values.plausible.secretKeyBase) | nindent 12 }}
             {{- end }}
             # PostgreSQL configuration
-            {{- if .Values.postgresql.enabled }}
-            {{- if .Values.postgresql.auth.existingSecret }}
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.postgresql.auth.existingSecret }}
-                  key: password
-            {{- else }}
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.postgresql.fullnameOverride }}
-                  key: password
-            {{- end }}
-            - name: DATABASE_URL
-              value: "postgres://{{ .Values.postgresql.auth.username }}:$(POSTGRES_PASSWORD)@{{ .Values.postgresql.fullnameOverride }}:5432/{{ .Values.postgresql.auth.database }}"
-            {{- else }}
             {{- if .Values.externalPostgresql.existingSecret }}
             - name: POSTGRES_PASSWORD
               valueFrom:
@@ -64,8 +47,7 @@ spec:
             {{- include "common.env" (dict "name" "POSTGRES_PASSWORD" "value" .Values.externalPostgresql.password) | nindent 12 }}
             {{- end }}
             - name: DATABASE_URL
-              value: "postgres://{{ .Values.externalPostgresql.username }}:$(POSTGRES_PASSWORD)@{{ .Values.externalPostgresql.host }}:{{ .Values.externalPostgresql.port }}/{{ .Values.externalPostgresql.database }}"
-            {{- end }}
+              value: "postgres://{{ .Values.externalPostgresql.username }}:$(POSTGRES_PASSWORD)@{{ required "externalPostgresql.host is required" .Values.externalPostgresql.host }}:{{ .Values.externalPostgresql.port }}/{{ .Values.externalPostgresql.database }}"
             # ClickHouse configuration
             {{- if .Values.clickhouse.enabled }}
             {{- if .Values.clickhouse.auth.existingSecret }}
@@ -137,23 +119,6 @@ spec:
 
             # PostgreSQL configuration
             # Note: POSTGRES_PASSWORD must be defined BEFORE DATABASE_URL for $(VAR) substitution to work
-            {{- if .Values.postgresql.enabled }}
-            {{- if .Values.postgresql.auth.existingSecret }}
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.postgresql.auth.existingSecret }}
-                  key: password
-            {{- else }}
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.postgresql.fullnameOverride }}
-                  key: password
-            {{- end }}
-            - name: DATABASE_URL
-              value: "postgres://{{ .Values.postgresql.auth.username }}:$(POSTGRES_PASSWORD)@{{ .Values.postgresql.fullnameOverride }}:5432/{{ .Values.postgresql.auth.database }}"
-            {{- else }}
             {{- if .Values.externalPostgresql.existingSecret }}
             - name: POSTGRES_PASSWORD
               valueFrom:
@@ -164,8 +129,7 @@ spec:
             {{- include "common.env" (dict "name" "POSTGRES_PASSWORD" "value" .Values.externalPostgresql.password) | nindent 12 }}
             {{- end }}
             - name: DATABASE_URL
-              value: "postgres://{{ .Values.externalPostgresql.username }}:$(POSTGRES_PASSWORD)@{{ .Values.externalPostgresql.host }}:{{ .Values.externalPostgresql.port }}/{{ .Values.externalPostgresql.database }}"
-            {{- end }}
+              value: "postgres://{{ .Values.externalPostgresql.username }}:$(POSTGRES_PASSWORD)@{{ required "externalPostgresql.host is required" .Values.externalPostgresql.host }}:{{ .Values.externalPostgresql.port }}/{{ .Values.externalPostgresql.database }}"
 
             # ClickHouse configuration
             {{- if .Values.clickhouse.enabled }}
