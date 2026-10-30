@@ -139,7 +139,7 @@ routeMonitor:
   schedule: "*/2 * * * *"
   image:
     repository: bitnami/kubectl
-    tag: latest@sha256:b29d8c1665b70817259ceecaea16ab27aab6368b48daf485d19436c809067492
+    tag: latest@sha256:bedd34c910e2a5ce9836813d16444af449d7fe07a29136d59f34e861e8e660c5
     pullPolicy: IfNotPresent
   # Kill a run that hangs. With concurrencyPolicy Forbid, a stuck job (e.g. a pod
   # that never leaves Pending) otherwise blocks every later run indefinitely.
@@ -213,7 +213,7 @@ subnetRouter:
   # Tailscale client image
   image:
     repository: tailscale/tailscale
-    tag: stable@sha256:8c42c4574ab066384fcb72f69e086a2ff1dd3652eb6f56856cee34bcf0d2f680
+    tag: stable@sha256:ed6480b33c6eb67c9cbd203ed42b9fb57e361986725b6856def71b7a3d9e276c
     pullPolicy: IfNotPresent
 
   # Resource limits for subnet router
