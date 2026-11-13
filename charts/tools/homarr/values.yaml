@@ -8,7 +8,7 @@ fullnameOverride: ""
 # Image configuration
 image:
   repository: ghcr.io/homarr-labs/homarr
-  tag: "latest@sha256:f7b31d2dee7b14cfaabd78a5e844362ccd736d09c1b5b4d498b0f2d21c0d17d0"
+  tag: "latest@sha256:70bf384fa6848d058322220597eb7baca62ea80039bfb3dfcc2bfef8991e7bfc"
   pullPolicy: IfNotPresent
 
 # Timezone
