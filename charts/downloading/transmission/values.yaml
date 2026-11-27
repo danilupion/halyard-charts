@@ -12,7 +12,7 @@ fullnameOverride: ""
 image:
   registry: lscr.io
   repository: linuxserver/transmission
-  tag: "4.1.4@sha256:aaf349cd859ca9d5f34f394c56b8097c267a513283698adc4d07ee61d7cb1a85"
+  tag: "4.1.4@sha256:3a8ecd4ebbc9ec657ccddba674a067db20eb28a25d61146698580d724599c7cb"
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries
